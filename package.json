@@ -1,0 +1,21 @@
+{
+  "name": "arunika-fmcg-erp-m01",
+  "version": "1.0.0",
+  "description": "PT Arunika Distribusi Cepat - ERP FMCG (M01: Sales & CRM, Product Owner & Business Analyst)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test_m01.js"
+  },
+  "keywords": [
+    "erp",
+    "odoo",
+    "fmcg",
+    "sales",
+    "crm",
+    "business-analyst",
+    "product-owner"
+  ],
+  "author": "M01 (Product Owner / Business Analyst)",
+  "license": "ISC"
+}

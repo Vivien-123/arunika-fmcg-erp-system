@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PT Arunika Distribusi Cepat - ERP FMCG (Odoo 17.0 Web)</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- ODOO 17 WEB TOP NAVBAR -->
+  <header class="odoo-navbar">
+    <div class="nav-left">
+      <button class="app-switcher-btn" id="btnAppSwitcher" title="App Switcher">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/>
+        </svg>
+      </button>
+      <div class="app-brand">
+        <span class="company-name" id="companyBadge">PT Arunika Distribusi Cepat</span>
+        <span class="nav-divider">/</span>
+        <span class="active-app-name" id="currentAppTitle">Sales</span>
+      </div>
+      <nav class="app-subnav" id="appSubnav">
+        <button class="subnav-link active" data-view="sales-orders">Orders</button>
+        <button class="subnav-link" data-view="crm-pipeline">CRM Pipeline</button>
+        <button class="subnav-link" data-view="customers">Customers</button>
+        <button class="subnav-link" data-view="products">Products</button>
+        <button class="subnav-link" data-view="decision-defense">Decision Defense</button>
+        <button class="subnav-link" data-view="test-suite">Test Suite (T-xx)</button>
+        <button class="subnav-link" data-view="audit-logs">Audit Log</button>
+      </nav>
+    </div>
+
+    <div class="nav-right">
+      <!-- Role Switcher -->
+      <div class="user-role-selector">
+        <label for="userRoleSelect">Role:</label>
+        <select id="userRoleSelect">
+          <option value="sales_user|Sales" selected>sales_user (Sales)</option>
+          <option value="finance_user|Finance">finance_user (Finance)</option>
+          <option value="warehouse_mgr|Warehouse">warehouse_mgr (Warehouse)</option>
+          <option value="hr_user|HR">hr_user (HR)</option>
+          <option value="owner_user|Owner">owner_user (Owner)</option>
+        </select>
+      </div>
+
+      <!-- Seed Fixture Reset Button -->
+      <button class="btn-reset-fixture" id="btnResetFixture" title="Reset all data to official PDF scenario seed baseline">
+        ↺ Reset Fixture
+      </button>
+
+      <!-- Active User Profile Avatar -->
+      <div class="user-profile-badge">
+        <div class="avatar-circle" id="userAvatar">DP</div>
+        <span class="user-name" id="userNameLabel">Dini Pratiwi (Sales)</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- APP SWITCHER MODAL OVERLAY (S-01) -->
+  <div class="app-switcher-overlay" id="appSwitcherOverlay">
+    <div class="app-switcher-modal">
+      <div class="app-switcher-header">
+        <h2>Apps</h2>
+        <button class="btn-close-modal" id="btnCloseAppSwitcher">&times;</button>
+      </div>
+      <div class="app-grid">
+        <div class="app-item active-app" data-target-app="sales-orders">
+          <div class="app-icon bg-purple">🛒</div>
+          <span class="app-title">Sales</span>
+          <span class="app-badge allowed">Diizinkan</span>
+        </div>
+        <div class="app-item" data-target-app="crm-pipeline">
+          <div class="app-icon bg-teal">🎯</div>
+          <span class="app-title">CRM</span>
+          <span class="app-badge allowed">Diizinkan</span>
+        </div>
+        <div class="app-item" data-target-app="customers">
+          <div class="app-icon bg-blue">👥</div>
+          <span class="app-title">Contacts</span>
+          <span class="app-badge allowed">Diizinkan</span>
+        </div>
+        <div class="app-item" data-target-app="products">
+          <div class="app-icon bg-amber">📦</div>
+          <span class="app-title">Products (SKU)</span>
+          <span class="app-badge allowed">Diizinkan</span>
+        </div>
+        <div class="app-item" id="appItemInventory" data-target-app="inventory">
+          <div class="app-icon bg-cyan">🏭</div>
+          <span class="app-title">Inventory</span>
+          <span class="app-badge" id="badgeInventory">Warehouse only</span>
+        </div>
+        <div class="app-item" id="appItemAccounting" data-target-app="accounting">
+          <div class="app-icon bg-green">💰</div>
+          <span class="app-title">Accounting</span>
+          <span class="app-badge restricted" id="badgeAccounting">Finance only</span>
+        </div>
+        <div class="app-item" id="appItemEmployees" data-target-app="employees">
+          <div class="app-icon bg-red">👔</div>
+          <span class="app-title">Employees</span>
+          <span class="app-badge" id="badgeEmployees">HR Restricted</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTAINER -->
+  <main class="odoo-main">
+
+    <!-- CONTROL PANEL (SEARCH, FILTERS, BUTTONS, VIEWS) -->
+    <div class="odoo-control-panel" id="controlPanel">
+      <div class="cp-left">
+        <div class="breadcrumb" id="cpBreadcrumb">
+          <span class="crumb-root">Sales</span>
+          <span class="crumb-separator">/</span>
+          <span class="crumb-current" id="cpCurrentTitle">Quotations & Orders</span>
+        </div>
+        <div class="cp-action-buttons" id="cpActionButtons">
+          <!-- Dynamic Action Buttons injected per view -->
+        </div>
+      </div>
+
+      <div class="cp-right">
+        <div class="search-box-container">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="globalSearchInput" placeholder="Search by document, customer, SKU...">
+          <button class="btn-clear-search" id="btnClearSearch">&times;</button>
+        </div>
+        <div class="view-switchers" id="viewSwitchers">
+          <button class="btn-view active" data-view-mode="list" title="List View">☰</button>
+          <button class="btn-view" data-view-mode="kanban" title="Kanban View">☷</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTIFICATION BANNER / ALERT MESSAGE -->
+    <div id="alertBanner" class="alert-banner hidden"></div>
+
+    <!-- ======================================================== -->
+    <!-- VIEW 1: SALES ORDERS & QUOTATIONS LIST (S-05)            -->
+    <!-- ======================================================== -->
+    <section class="view-section" id="viewSalesOrdersList">
+      <div class="odoo-table-card">
+        <table class="odoo-table">
+          <thead>
+            <tr>
+              <th>Document</th>
+              <th>Customer</th>
+              <th>Salesperson</th>
+              <th>Payment Terms</th>
+              <th class="text-right">Net Total</th>
+              <th class="text-right">PPN (11%)</th>
+              <th class="text-right">Gross Total</th>
+              <th>Status</th>
+              <th>Approval</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="salesOrdersTableBody">
+            <!-- Rendered by app.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- VIEW 1B: SALES ORDER / QUOTATION FORM VIEW (S-05)        -->
+    <!-- ======================================================== -->
+    <section class="view-section hidden" id="viewSalesOrderForm">
+      <div class="odoo-sheet-wrapper">
+        <div class="odoo-form-header">
+          <div class="form-title-area">
+            <span class="sub-label">Quotation / Sales Order</span>
+            <h1 id="soFormDocId">S00008</h1>
+          </div>
+          <!-- Odoo Status Bar Pipeline -->
+          <div class="odoo-statusbar">
+            <div class="status-step" id="stepDraft">Draft</div>
+            <div class="status-arrow">›</div>
+            <div class="status-step" id="stepToApprove">To Approve</div>
+            <div class="status-arrow">›</div>
+            <div class="status-step" id="stepConfirmed">Confirmed</div>
+            <div class="status-arrow">›</div>
+            <div class="status-step" id="stepCancelled">Cancelled</div>
+          </div>
+        </div>
+
+        <!-- Form Top Action Bar & Smart Buttons -->
+        <div class="form-action-bar">
+          <div class="left-actions">
+            <button class="btn-odoo primary" id="btnConfirmSO">Confirm Order</button>
+            <button class="btn-odoo warning hidden" id="btnApproveDiscountSO">Finance Approve Discount</button>
+            <button class="btn-odoo secondary" id="btnBackToSOList">‹ Back to Orders</button>
+          </div>
+          <div class="smart-buttons">
+            <div class="smart-btn" id="smartBtnDelivery" title="Delivery Order">
+              <span class="smart-icon">🚚</span>
+              <div class="smart-info">
+                <span class="smart-val" id="smartValDelivery">0</span>
+                <span class="smart-label">Delivery</span>
+              </div>
+            </div>
+            <div class="smart-btn" id="smartBtnInvoice" title="Customer Invoice">
+              <span class="smart-icon">🧾</span>
+              <div class="smart-info">
+                <span class="smart-val" id="smartValInvoice">0</span>
+                <span class="smart-label">Invoices</span>
+              </div>
+            </div>
+            <div class="smart-btn" id="smartBtnCredit" title="Customer Credit Profile">
+              <span class="smart-icon">💳</span>
+              <div class="smart-info">
+                <span class="smart-val" id="smartValExposure">Rp0</span>
+                <span class="smart-label">Exposure</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Credit Pre-Check Warning Box (SR-11) -->
+        <div id="creditWarningBox" class="rule-box warning hidden">
+          <strong>⚠️ Peringatan Credit Limit (SR-11):</strong>
+          <span id="creditWarningText"></span>
+        </div>
+
+        <!-- Discount Warning Box (SR-07/SR-08) -->
+        <div id="discountWarningBox" class="rule-box info hidden">
+          <strong>ℹ️ Aturan Diskon (SR-07 & SR-08):</strong>
+          <span id="discountWarningText">Terdapat diskon di atas 10%. Memerlukan persetujuan Finance sebelum konfirmasi dapat diselesaikan.</span>
+        </div>
+
+        <!-- Lock Warning Box (SR-12) -->
+        <div id="lockWarningBox" class="rule-box success hidden">
+          <strong>🔒 Pesanan Terkunci (SR-12):</strong>
+          <span>Pesanan ini berstatus <b>Confirmed</b>. Harga, diskon, dan baris produk telah terkunci secara permanen. Revisi memerlukan pembatalan resmi dan audit.</span>
+        </div>
+
+        <!-- Document Header Fields Card -->
+        <div class="odoo-sheet-fields">
+          <div class="field-grid">
+            <div class="field-group">
+              <label>Customer *</label>
+              <select id="soFieldCustomer" class="odoo-input">
+                <!-- Injected via JS -->
+              </select>
+            </div>
+            <div class="field-group">
+              <label>Payment Terms</label>
+              <select id="soFieldPaymentTerms" class="odoo-input">
+                <option value="Tunai">Tunai</option>
+                <option value="14 hari" selected>14 hari</option>
+                <option value="30 hari">30 hari</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label>Warehouse (Source)</label>
+              <input type="text" id="soFieldWarehouse" class="odoo-input" value="WH-JKT (Jakarta)" readonly>
+            </div>
+            <div class="field-group">
+              <label>Salesperson</label>
+              <input type="text" id="soFieldSalesperson" class="odoo-input" value="E04 - Dini Pratiwi" readonly>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notebook Tabs -->
+        <div class="odoo-notebook">
+          <div class="notebook-tabs">
+            <button class="notebook-tab active" data-tab="tabOrderLines">Order Lines</button>
+            <button class="notebook-tab" data-tab="tabCreditProfile">Customer Credit Profile</button>
+            <button class="notebook-tab" data-tab="tabStockState">Stock & Reservation State</button>
+            <button class="notebook-tab" data-tab="tabAuditTrail">Log Notes & Audit Trail</button>
+          </div>
+
+          <!-- TAB 1: ORDER LINES -->
+          <div class="notebook-pane active" id="tabOrderLines">
+            <div class="table-responsive">
+              <table class="odoo-table lines-table">
+                <thead>
+                  <tr>
+                    <th style="width: 32%">Product / SKU</th>
+                    <th class="text-right" style="width: 10%">Quantity</th>
+                    <th style="width: 8%">Unit</th>
+                    <th class="text-right" style="width: 15%">Unit Price</th>
+                    <th class="text-right" style="width: 10%">Disc %</th>
+                    <th class="text-right" style="width: 10%">PPN (11%)</th>
+                    <th class="text-right" style="width: 15%">Gross Amount</th>
+                    <th style="width: 5%"></th>
+                  </tr>
+                </thead>
+                <tbody id="soLinesTableBody">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+
+            <div class="lines-actions" id="linesActionContainer">
+              <button class="btn-odoo secondary btn-sm" id="btnAddLine">+ Add a product line</button>
+            </div>
+
+            <!-- Totals Footer -->
+            <div class="order-totals-card">
+              <div class="totals-row">
+                <span class="totals-label">Untaxed Amount (Net):</span>
+                <span class="totals-value" id="totNet">Rp0</span>
+              </div>
+              <div class="totals-row">
+                <span class="totals-label">PPN 11% (Non-mewah):</span>
+                <span class="totals-value" id="totTax">Rp0</span>
+              </div>
+              <div class="totals-row grand-total">
+                <span class="totals-label">Total Gross:</span>
+                <span class="totals-value" id="totGross">Rp0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: CREDIT PROFILE DETAIL -->
+          <div class="notebook-pane" id="tabCreditProfile">
+            <div class="credit-profile-detail-card" id="creditTabContent">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+
+          <!-- TAB 3: STOCK & RESERVATION STATE -->
+          <div class="notebook-pane" id="tabStockState">
+            <div class="stock-state-card" id="stockTabContent">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+
+          <!-- TAB 4: AUDIT TRAIL & LOG NOTES (CHATTER) -->
+          <div class="notebook-pane" id="tabAuditTrail">
+            <div class="chatter-history" id="soAuditLogsContainer">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- VIEW 2: CRM PIPELINE (KANBAN & LIST) (S-04)              -->
+    <!-- ======================================================== -->
+    <section class="view-section hidden" id="viewCrmPipeline">
+      <div class="kanban-board">
+        <!-- Stage: New -->
+        <div class="kanban-column" id="stageNew">
+          <div class="kanban-header">
+            <h3>New</h3>
+            <span class="badge-count" id="countNew">0</span>
+          </div>
+          <div class="kanban-cards" id="cardsNew"></div>
+        </div>
+
+        <!-- Stage: Qualified -->
+        <div class="kanban-column" id="stageQualified">
+          <div class="kanban-header">
+            <h3>Qualified</h3>
+            <span class="badge-count" id="countQualified">0</span>
+          </div>
+          <div class="kanban-cards" id="cardsQualified"></div>
+        </div>
+
+        <!-- Stage: Won -->
+        <div class="kanban-column" id="stageWon">
+          <div class="kanban-header">
+            <h3>Won</h3>
+            <span class="badge-count" id="countWon">0</span>
+          </div>
+          <div class="kanban-cards" id="cardsWon"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- VIEW 3: CUSTOMERS & CREDIT PROFILES (S-02)               -->
+    <!-- ======================================================== -->
+    <section class="view-section hidden" id="viewCustomers">
+      <div class="odoo-table-card">
+        <table class="odoo-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Customer Name</th>
+              <th>Type</th>
+              <th>City</th>
+              <th>Payment Terms</th>
+              <th class="text-right">Credit Limit</th>
+              <th class="text-right">Open AR</th>
+              <th class="text-right">Unbilled Confirmed SO</th>
+              <th class="text-right">Current Exposure</th>
+              <th class="text-right">Remaining Credit</th>
+              <th>Credit Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="customersTableBody">
+            <!-- Rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- VIEW 4: PRODUCTS CATALOGUE (S-03)                        -->
+    <!-- ======================================================== -->
+    <section class="view-section hidden" id="viewProducts">
+      <div class="odoo-table-card">
+        <table class="odoo-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Variant SKU</th>
+              <th>Product Name</th>
+              <th>Size / Pack</th>
+              <th>Unit</th>
+              <th class="text-right">Sales Price</th>
+              <th class="text-right">Cost</th>
+              <th class="text-right">WH-JKT On Hand</th>
+              <th class="text-right">Reserved</th>
+              <th class="text-right">Available</th>
+              <th>Vendor</th>
+            </tr>
+          </thead>
+          <tbody id="productsTableBody">
+            <!-- Rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- VIEW 5: DECISION DEFENSE MATRIX (RUBRIK 25% + 20%)       -->
+    <!-- ======================================================== -->
+    <section class="view-section hidden" id="viewDecisionDefense">
+      <div class="defense-container">
+        <div class="defense-banner">
+          <h2>M01 Product Owner & Business Analyst — Decision Defense Matrix</h2>
+          <p>Format Resmi Sesuai Halaman 35 Handout: <b>Masalah / Konflik (SR) | Opsi dipertimbangkan | Keputusan + F/S | Trade-off & Pihak Dirugikan | Bukti (T)</b></p>
+        </div>
+        <div class="odoo-table-card">
+          <table class="odoo-table defense-table">
+            <thead>
+              <tr>
+                <th style="width: 14%">Masalah / Konflik (SR)</th>
+                <th style="width: 24%">Opsi Dipertimbangkan</th>
+                <th style="width: 22%">Keputusan + F/S</th>
+                <th style="width: 25%">Trade-off & Pihak Dirugikan</th>
+                <th style="width: 15%">Bukti Uji (T)</th>
+              </tr>
+            </thead>
+            <tbody id="decisionDefenseBody">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- VIEW 6: AUTOMATED ACCEPTANCE TEST SUITE (T-03..T-10)     -->
+    <!-- ======================================================== -->
+    <section class="view-section hidden" id="viewTestSuite">
+      <div class="test-suite-card">
+        <div class="test-suite-header">
+          <div>
+            <h2>M01 Acceptance Test Suite Runner</h2>
+            <p>Pengujian Otomatis Seluruh Skenario Wajib M01 (T-03, T-04, T-07, T-08, T-09, T-10, T-01, T-02, T-28)</p>
+          </div>
+          <button class="btn-odoo primary" id="btnRunTests">▶ Jalankan Seluruh Pengujian</button>
+        </div>
+
+        <div id="testSummaryBadge" class="test-summary-badge hidden">
+          <span id="testSummaryText">Status: Siap dijalankan</span>
+        </div>
+
+        <div class="test-results-list" id="testResultsList">
+          <div class="test-placeholder">Klik tombol "Jalankan Seluruh Pengujian" untuk memverifikasi seluruh business rules dan acceptance tests.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- VIEW 7: AUDIT LOGS (S-18)                                -->
+    <!-- ======================================================== -->
+    <section class="view-section hidden" id="viewAuditLogs">
+      <div class="odoo-table-card">
+        <table class="odoo-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Timestamp</th>
+              <th>Document</th>
+              <th>Action</th>
+              <th>Actor (User)</th>
+              <th>Details</th>
+              <th>Result / Status</th>
+            </tr>
+          </thead>
+          <tbody id="auditLogsTableBody">
+            <!-- Rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: CREATE LEAD (S-04) -->
+  <div class="modal-backdrop hidden" id="modalCreateLead">
+    <div class="odoo-modal">
+      <div class="modal-header">
+        <h3>New CRM Lead</h3>
+        <button class="btn-close-modal" id="btnCloseModalLead">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="field-group">
+          <label>Customer *</label>
+          <select id="leadCustomerInput" class="odoo-input"></select>
+        </div>
+        <div class="field-group">
+          <label>Expected Revenue (Rp) *</label>
+          <input type="number" id="leadRevenueInput" class="odoo-input" placeholder="e.g. 500000" value="500000">
+        </div>
+        <div class="field-group">
+          <label>Salesperson</label>
+          <input type="text" id="leadSalespersonInput" class="odoo-input" value="E04 - Dini Pratiwi" readonly>
+        </div>
+        <div class="field-group">
+          <label>Opportunity Details</label>
+          <input type="text" id="leadDetailsInput" class="odoo-input" placeholder="Kebutuhan snack B2B bulanan">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-odoo primary" id="btnSubmitLead">Save Lead</button>
+        <button class="btn-odoo secondary" id="btnCancelModalLead">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
