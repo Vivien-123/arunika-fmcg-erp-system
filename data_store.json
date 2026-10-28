@@ -400,7 +400,7 @@
         "company_total": 80,
         "standard_cost": 17000,
         "standard_value": 1360000,
-        "reserved": 18
+        "reserved": 8
       },
       {
         "variant_sku": "FOD-MIE-B12-ORI",
@@ -912,46 +912,6 @@
           "created_at": "2026-10-19T09:30:00Z",
           "confirmed_at": "2026-10-19T10:00:00Z",
           "confirmed_by": "sales_user"
-        },
-        {
-          "document_id": "S00008",
-          "type": "Sales Order",
-          "partner": "C01",
-          "partner_name": "PT Toko Makmur Sejahtera",
-          "salesperson": "E04",
-          "status": "Confirmed",
-          "approval_status": "Approved",
-          "payment_terms": "14 hari",
-          "warehouse": "WH-JKT",
-          "lines": [
-            {
-              "id": 1,
-              "product_id": "P01",
-              "variant_sku": "CLN-DTR-800-LMN",
-              "description": "",
-              "unit": "pouch",
-              "qty": 10,
-              "unit_price": 25000,
-              "discount_percent": 15,
-              "effective_unit_price": 21250,
-              "net_amount": 212500,
-              "tax_amount": 23375,
-              "gross_amount": 235875,
-              "reserved_qty": 10,
-              "delivered_qty": 0,
-              "invoiced_qty": 0
-            }
-          ],
-          "net_total": 212500,
-          "tax_total": 23375,
-          "gross_total": 235875,
-          "has_discount_over_10": true,
-          "stock_state": "Reserved 10 P01 di WH-JKT; belum delivered",
-          "financial_state": "Belum invoiced; exposure 235.875",
-          "created_at": "2026-10-26T08:57:49.060Z",
-          "created_by": "sales_user",
-          "confirmed_at": "2026-10-26T08:57:49.071Z",
-          "confirmed_by": "sales_user"
         }
       ],
       "purchase_orders": [
@@ -1004,6 +964,10 @@
         "debit": 23095000,
         "credit": 0
       },
+      "1350": {
+        "debit": 0,
+        "credit": 0
+      },
       "2000": {
         "debit": 0,
         "credit": 700000
@@ -1015,51 +979,6 @@
     }
   },
   "auditLogs": [
-    {
-      "id": 8,
-      "document_id": "S00008",
-      "action": "REJECT_UPDATE_CONFIRMED_ORDER",
-      "actor": "sales_user",
-      "timestamp": "2026-10-26T08:57:49.074Z",
-      "details": "Attempted to modify prices/lines on confirmed order S00008. Blocked per SR-12.",
-      "result": "BLOCKED_ORDER_LOCKED"
-    },
-    {
-      "id": 7,
-      "document_id": "S00008",
-      "action": "CONFIRM_SALES_ORDER",
-      "actor": "sales_user",
-      "timestamp": "2026-10-26T08:57:49.071Z",
-      "details": "Confirmed Sales Order S00008 for PT Toko Makmur Sejahtera. Net: Rp212500, Gross: Rp235875. Customer exposure is now Rp1357875. Lines and prices locked.",
-      "result": "Confirmed; S00008 created once; lines locked"
-    },
-    {
-      "id": 6,
-      "document_id": "S00008",
-      "action": "FINANCE_DISCOUNT_APPROVAL",
-      "actor": "finance_user",
-      "timestamp": "2026-10-26T08:57:49.068Z",
-      "details": "Finance approved discount for order S00008 (exceeded 10% threshold).",
-      "result": "Discount Approved"
-    },
-    {
-      "id": 5,
-      "document_id": "S00008",
-      "action": "BLOCK_CONFIRM_DISCOUNT_UNAPPROVED",
-      "actor": "sales_user",
-      "timestamp": "2026-10-26T08:57:49.063Z",
-      "details": "Sales attempted to confirm order S00008 with discount > 10% without Finance approval. Blocked per SR-07/SR-08.",
-      "result": "BLOCKED_APPROVAL_REQUIRED"
-    },
-    {
-      "id": 4,
-      "document_id": "S00008",
-      "action": "CREATE_QUOTATION",
-      "actor": "sales_user",
-      "timestamp": "2026-10-26T08:57:49.060Z",
-      "details": "Created draft Quotation S00008 for PT Toko Makmur Sejahtera. Net: Rp212500, Gross: Rp235875.",
-      "result": "Success"
-    },
     {
       "id": 1,
       "document_id": "SYSTEM",

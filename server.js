@@ -7,6 +7,8 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 
+const purchaseInventoryService = require('./purchase_inventory_service');
+
 const store = require('./store');
 const salesCrmService = require('./sales_crm_service');
 
@@ -271,6 +273,44 @@ const server = http.createServer(async (req, res) => {
         failed: results.filter(r => !r.pass).length,
         tests: results
       });
+    }
+
+    // -------------------------------------------------------------
+    // MODUL M02: PURCHASE & INVENTORY API ROUTES
+    // -------------------------------------------------------------
+
+    // API Purchase Orders
+    if (pathname === '/api/purchase-orders' && method === 'GET') {
+      return sendJson(res, 200, store.state.existing_documents.purchase_orders || []);
+    }
+
+    if (pathname === '/api/purchase-orders' && method === 'POST') {
+      const body = await parseBody(req);
+      const po = purchaseInventoryService.createPurchaseOrder(body, actor);
+      return sendJson(res, 201, po);
+    }
+
+    const poReceiveMatch = pathname.match(/^\/api\/purchase-orders\/([A-Za-z0-9_-]+)\/receive$/);
+    if (poReceiveMatch && method === 'POST') {
+      const poId = poReceiveMatch[1];
+      const body = await parseBody(req);
+      const result = purchaseInventoryService.receiveGoods(poId, body.lines || [], body.warehouse || 'WH-JKT', actor);
+      return sendJson(res, 200, result);
+    }
+
+    // API Stock Transfer & FEFO
+    if (pathname === '/api/inventory/transfer' && method === 'POST') {
+      const body = await parseBody(req);
+      const transfer = purchaseInventoryService.transferStockBetweenWarehouses(body, actor);
+      return sendJson(res, 200, transfer);
+    }
+
+    if (pathname === '/api/inventory/fefo-allocation' && method === 'GET') {
+      const sku = parsedUrl.query.sku;
+      const wh = parsedUrl.query.warehouse || 'WH-JKT';
+      const qty = parseInt(parsedUrl.query.qty || '1', 10);
+      const fefo = purchaseInventoryService.allocateLotFEFO(sku, wh, qty);
+      return sendJson(res, 200, fefo);
     }
 
     // -------------------------------------------------------------

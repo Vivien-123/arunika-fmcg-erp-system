@@ -146,3 +146,88 @@ Konflik paling kritis yang diselesaikan oleh M01 adalah **SR-01 (Keinginan Pemil
 
 This repository contains the source code for the **Arunika FMCG ERP System** prototype, focusing on the Sales & CRM module (M01). Other modules (Purchase, Inventory, Employees, Accounting) will be developed by the remaining team members.
 ```
+
+---
+
+## 8. Hasil Uji Otomatis Modul M02 (Purchase & Inventory)
+
+Jalankan `npm test` untuk memverifikasi keluaran berikut:
+
+[✅ PASS] T-05 - Create Purchase Order PO00008 (F-07) (Normal Flow)
+   Expected: Document PO00008; Net Rp640.000; PPN 11% Rp70.400; Gross Rp710.400
+   Actual  : Document PO00008; Net Rp640.000; PPN Rp70.400; Gross Rp710.400
+   Details : Sequential PO ID generated and effective 11% tax applied.
+------------------------------------------------------------
+[✅ PASS] T-06 - Goods Receipt & Stock Interim Journal Clearing (F-08) (Normal Flow)
+   Expected: WH-JKT stock P05 +20 units; Stock Interim (1350) Credit = Rp640.000
+   Actual  : WH-JKT stock P05: 50 units; Stock Interim Credit: Rp640.000
+   Details : Goods received into physical inventory with transient interim journal recorded.
+------------------------------------------------------------
+[✅ PASS] T-11 - Enforce Anti-Negative Stock Ceiling (SR-04 / F-17) (Rule / Edge Case)
+   Expected: Blocked per SR-04: Upaya pengeluaran melebihi stok ditolak.
+   Actual  : Blocked: "Aturan Bisnis SR-04 Violasi: Stok fisik tidak mencukupi di WH-JKT! Diminta:..."
+   Details : Prevents negative stock anomalies across warehouses.
+------------------------------------------------------------
+[✅ PASS] T-12 - FEFO Lot Picking Engine (F-12) (Normal Flow)
+   Expected: Lot LOT-TEA-01 taken 15 units (earliest exp); Lot LOT-TEA-02 taken 10 units
+   Actual  : Allocated 25 units via 2 lots: LOT-TEA-01(15), LOT-TEA-02(10)
+   Details : Earliest expiry lot automatically prioritized.
+------------------------------------------------------------
+[✅ PASS] T-13 - Internal Stock Transfer Between Warehouses (F-11) (Normal Flow)
+   Expected: WH-JKT reduced by 10 (to 50); HUB-BDG increased by 10 (to 30); Company Total remains 80
+   Actual  : WH-JKT: 50, HUB-BDG: 30, Total Company: 80
+   Details : Stock movement tracked accurately without changing total company valuation.
+------------------------------------------------------------
+
+============================================================
+ACCEPTANCE TEST M02 RESULTS: 5 / 5 PASSED (100%)
+============================================================
+
+(Seed Baseline Checksum Report)
+
+Jalankan `npm checksum` untuk memverifikasi keluaran berikut:
+============================================================
+PT ARUNIKA DISTRIBUSI CEPAT - SEED BASELINE CHECKSUM REPORT
+============================================================
+
+Total SKU Products        : 16 (Expected: 16)
+Total On Hand Company     : 880 unit (Expected: 880)
+Total On Hand WH-JKT      : 665 unit (Expected: 665)
+Total On Hand HUB-BDG     : 215 unit (Expected: 215)
+Total Reserved (S00007)   : 8 unit (Expected: 8)
+Total Stock Valuation     : Rp23.095.000 (Expected: Rp23.095.000)
+Ledger Total Debit        : Rp44.595.000
+Ledger Total Credit       : Rp44.595.000
+Ledger Balance Status     : ✅ BALANCED (Rp44.595.000)
+
+HASIL AKHIR CHECKSUM      : PASSED 100%
+============================================================
+
+---
+
+## 09. Rencana Deployment & Kebijakan Operasional (M4-W1-05)
+
+Sesuai dengan ketentuan Batasan Teknis, Jadwal Target Mingguan, dan Deployment pada Handout §8 & §9, berikut adalah arsitektur dan strategi rilis aplikasi PT Arunika Distribusi Cepat:
+
+### 1. Arsitektur & Platform Deployment
+- **Cloud Hosting Provider:** Render, Railway, atau Fly.io (Standard Node.js Runtime Environment).
+- **URL Publik Aplikasi:** `[https://arunika-fmcg-erp.onrender.com](https://arunika-fmcg-erp.onrender.com)` *(Contoh tautan rilis publik untuk dosen dan penguji)*.
+- **Persistensi Data:** Menggunakan penyimpanan file JSON lokal persisten (`data_store.json`) untuk memastikan seluruh mutasi dokumen (*Sales, Purchase, Inventory, Accounting*) tetap aman dan tersimpan utuh meskipun terjadi *restart* server atau *refresh* peramban.
+
+### 2. Protokol Pemulihan Basis Data (Seed Reset & Fixture)
+Untuk memenuhi aturan pengujian independen di mana setiap skenario `T-xx` harus dimulai dari *clean baseline*:
+- Sistem dilengkapi mekanisme reset otomatis melalui fungsi `store.resetToSeed()`.
+- Menyediakan endpoint pengujian `POST /api/fixture/reset` untuk mengembalikan kondisi basis data seketika ke baseline awal (16 SKU produk, 880 unit total stok, dan saldo pembukaan akuntansi yang seimbang).
+
+### 3. Kredensial Akun Uji Lintas-Peran (Multi-Role Test Accounts)
+Aplikasi menerapkan kontrol akses berbasis peran (*Role-Based Access Control*) yang memetakan identitas pegawai aktif (*Employee*) ke akun pengguna (*User Account*):
+
+| Username | Peran (*Role*) | Pegawai Terhubung (*Employee*) | Password Uji | Hak Akses & Cakupan Modul |
+| :--- | :--- | :--- | :--- | :--- |
+| `sales_user` | Sales | E04 (Dini Pratiwi) | `Demo2026!` | CRM Leads, Quotation, Sales Order, dan Manajemen Kontak Pelanggan. |
+| `warehouse_mgr` | Warehouse | E01 (Sari Prameswari) | `Demo2026!` | Stock Overview, Validasi Delivery Order / Goods Receipt, Transfer Antar Gudang. |
+| `warehouse_user` | Warehouse | E02 (Arif Maulana) | `Demo2026!` | Operasional gudang harian dan entry data fisik barang masuk. |
+| `purchase_user` | Purchase | E07 (Rita Kusuma) | `Demo2026!` | Permintaan Pembelian (RFQ), Purchase Order, dan Katalog Vendor Pricelist. |
+| `finance_user` | Finance | E06 (Made Wirawan) | `Demo2026!` | Customer Invoice, Vendor Bill, Register Payment, General Ledger. |
+| `hr_user` | HR | E08 (Melati Yusuf) | `Demo2026!` | Direktori Karyawan, Manajemen Departemen, dan Proteksi Data Privat (T-28). |
+| `owner_user` | Owner | *Executive Access* | `Demo2026!` | Dashboard Operasional Eksekutif (KPI Total Stok, AR/AP, Bank) & Full Audit Log. |

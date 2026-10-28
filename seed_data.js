@@ -250,6 +250,7 @@ function getInitialSeed() {
       "1000": { debit: 20000000, credit: 0 }, // Bank
       "1100": { debit: 1500000, credit: 0 },  // AR (C01: 900k, C02: 600k)
       "1300": { debit: 23095000, credit: 0 }, // Persediaan
+      "1350": { debit: 0, credit: 0 },
       "2000": { debit: 0, credit: 700000 },   // AP (V04: 700k)
       "3000": { debit: 0, credit: 43895000 }  // Modal
     }
