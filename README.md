@@ -127,7 +127,7 @@ HASIL KESELURUHAN: 7 / 7 PENGUJIAN LULUS (100% SUCCESS RATE)
 
 ---
 
-## 6. Catatan Penggunaan AI & Refleksi Akademik (Refleksi 1 & 2)
+## 6. Catatan Penggunaan AI & Refleksi Akademik
 
 ### Refleksi 1: Resolusi Konflik Paling Kritis
 Konflik paling kritis yang diselesaikan oleh M01 adalah **SR-01 (Keinginan Pemilik: Langsung Tagih Saat SO Konfirmasi)** versus **SR-02 (Prinsip Keuangan: Tagih Hanya Sesuai Barang Diterima)**.
@@ -137,5 +137,12 @@ Konflik paling kritis yang diselesaikan oleh M01 adalah **SR-01 (Keinginan Pemil
 
 ### Refleksi 2: Deteksi Halusinasi / Bias AI Coding Tool
 - **Temuan Kasus:** Pada saat pembuatan fitur konfirmasi Quotation dengan diskon 15%, AI menghasilkan tombol *Confirm* yang langsung mengubah status order menjadi *Confirmed* tanpa memvalidasi role atau persetujuan pihak Finance. Antarmuka tampak cantik dan mulus, namun mencederai aturan tata kelola internal **SR-08**.
-- **Langkah Perbaikan:** M01 menambahkan inspeksi *business rule* di `sales_crm_service.js`, mendeteksi jika ada baris diskon di atas 10%, membelokkan status pesanan ke `To Approve`, dan memblokir konfirmasi hingga user dengan role Finance melakukan *sign-off* approval.
+- **Langkah Perbaikan:** M01 menambahkan inspeksi *business rule* di `sales_crm_service.js`, mendeteksi jika ada baris diskon di atas 10%, membelokkan status pesanan ke `To Approve`, dan memblokir konfirmasi hingga user dengan role Finance melakukan *sign‑off* approval.
 - **Bukti Regresi:** Diuji secara otomatis dan tervalidasi melalui test case `T-10`.
+
+---
+
+## 7. Repository Overview (optional)
+
+This repository contains the source code for the **Arunika FMCG ERP System** prototype, focusing on the Sales & CRM module (M01). Other modules (Purchase, Inventory, Employees, Accounting) will be developed by the remaining team members.
+```
