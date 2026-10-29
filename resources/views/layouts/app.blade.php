@@ -42,7 +42,7 @@
         <div class="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8">
             @foreach(auth()->user()->allowedMenus() as $menu)
             @php
-                $menuRoutes = ['Employees'=>route('employees.index'),'Wireframes'=>route('wireframes'),'Sales'=>'#','CRM'=>'#','Purchase'=>'#','Inventory'=>'#','Accounting'=>'#','Invoicing'=>'#','Reporting'=>'#'];
+                $menuRoutes = ['Employees'=>route('employees.index'),'Wireframes'=>route('wireframes'),'Reporting'=>route('reporting.audit'),'Sales'=>'#','CRM'=>'#','Purchase'=>'#','Inventory'=>'#','Accounting'=>'#','Invoicing'=>'#'];
                 $menuIcons  = ['Sales'=>'🛒','CRM'=>'📋','Purchase'=>'📦','Inventory'=>'🏭','Accounting'=>'📊','Invoicing'=>'🧾','Employees'=>'👤','Reporting'=>'📈','Wireframes'=>'🖼️'];
             @endphp
             <a href="{{ $menuRoutes[$menu] ?? '#' }}" onclick="toggleAppSwitcher()" class="flex flex-col items-center p-2 rounded hover:bg-gray-100 transition text-center">

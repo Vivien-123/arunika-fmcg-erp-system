@@ -21,8 +21,9 @@ return new class extends Migration {
             $table->string('department_id');
             $table->string('job_title');
             $table->string('location');
-            $table->enum('status', ['Aktif', 'Nonaktif'])->default('Aktif');
-            $table->foreignId('mapped_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('status')->default('Aktif'); // 'Aktif' | 'Nonaktif'
+            $table->unsignedBigInteger('mapped_user_id')->nullable();
+            $table->foreign('mapped_user_id')->references('id')->on('users')->nullOnDelete();
             $table->foreign('department_id')->references('dept_id')->on('departments');
             $table->timestamps();
         });

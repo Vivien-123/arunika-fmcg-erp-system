@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\AuditController;
 
 // ── Auth ─────────────────────────────────────────────────────────────────
 Route::get('/login',  [AuthController::class, 'showLogin'])->name('login');
@@ -26,4 +27,11 @@ Route::middleware(['auth'])->group(function () {
          ->name('employees.toggleStatus')->middleware('role:HR,Owner');
     Route::post('/employees/validate-signoff', [EmployeeController::class, 'validateSignOff'])
          ->name('employees.validateSignOff');
+
+    // ── Reporting / Audit (M3-W3-04 · F-21 · S-18) ───────────────────────
+    Route::get('/reporting/audit', [AuditController::class, 'index'])
+         ->name('reporting.audit');
+    Route::get('/reporting/audit/{docType}/{docId}', [AuditController::class, 'show'])
+         ->name('reporting.audit.show')
+         ->where('docId', '.*'); // docId may contain slashes or dots
 });

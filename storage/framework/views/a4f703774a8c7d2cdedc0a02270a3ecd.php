@@ -62,4 +62,4 @@
 </div>
 </body>
 </html>
-<?php /**PATH C:\Users\ASUS\OneDrive\Desktop\Coolyeah Sem 4\arunika-erp\resources\views/auth/login.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\arunika-fmcg-erp-system\resources\views/auth/login.blade.php ENDPATH**/ ?>

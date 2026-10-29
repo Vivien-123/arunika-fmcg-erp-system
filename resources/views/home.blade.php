@@ -16,7 +16,7 @@
         'Accounting' => ['icon'=>'📊','desc'=>'Jurnal & Ledger',      'url'=>'#','color'=>'bg-green-50 border-green-200'],
         'Invoicing'  => ['icon'=>'🧾','desc'=>'Invoice & Pembayaran', 'url'=>'#','color'=>'bg-emerald-50 border-emerald-200'],
         'Employees'  => ['icon'=>'👤','desc'=>'Pegawai & Departemen', 'url'=>route('employees.index'),'color'=>'bg-purple-50 border-purple-200'],
-        'Reporting'  => ['icon'=>'📈','desc'=>'KPI & Dashboard',      'url'=>'#','color'=>'bg-pink-50 border-pink-200'],
+        'Reporting'  => ['icon'=>'📈','desc'=>'KPI & Dashboard',      'url'=>route('reporting.audit'),'color'=>'bg-pink-50 border-pink-200'],
         'Wireframes' => ['icon'=>'🖼️','desc'=>'S-01 s/d S-18',       'url'=>route('wireframes'),'color'=>'bg-gray-50 border-gray-200'],
     ];
 @endphp
