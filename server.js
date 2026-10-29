@@ -213,6 +213,11 @@ const server = http.createServer(async (req, res) => {
 
     const soConfirmMatch = pathname.match(/^\/api\/sales-orders\/([A-Za-z0-9_-]+)\/confirm$/);
     if (soConfirmMatch && method === 'POST') {
+      // Role enforcement: only Finance or Owner can confirm sales orders (SR-08)
+      if (role !== 'Finance' && role !== 'Owner') {
+        return sendJson(res, 403, { error: 'Confirmation requires Finance or Owner role (SR-08)' });
+      }
+
       const soId = soConfirmMatch[1];
       const result = salesCrmService.confirmSalesOrder(soId, actor);
       return sendJson(res, 200, result);

@@ -5,6 +5,26 @@
 
 const store = require('./store');
 
+// Helper to enforce role-based actions
+function requireRole(actor, allowedRoles) {
+  if (!allowedRoles.includes(actor)) {
+    throw new Error(`Action requires role ${allowedRoles.join(' or ')}`);
+  }
+}
+
+// Helper to validate line data (price, qty, discount)
+function validateLine(line) {
+  const product = store.state.products.find(p => p.variant_sku === line.variant_sku);
+  if (!product) throw new Error(`Product ${line.variant_sku} not found`);
+  if (line.qty <= 0) throw new Error(`Quantity must be positive for SKU ${line.variant_sku}`);
+  if (line.discount_percent < 0 || line.discount_percent > 15) {
+    throw new Error(`Discount percent must be between 0 and 15 for SKU ${line.variant_sku}`);
+  }
+  if (line.unit_price !== product.sales_price) {
+    throw new Error(`Unit price for SKU ${line.variant_sku} must match catalog price ${product.sales_price}`);
+  }
+}
+
 class SalesCrmService {
   // PPN Calculation Utility (Effective 11%, Round half-up per line)
   calculateLine(qty, unitPrice, discountPercent = 0) {
