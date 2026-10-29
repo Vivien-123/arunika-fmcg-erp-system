@@ -91,7 +91,7 @@ flowchart TD
 
 ## 5. Ringkasan Hasil Uji Otomatis M01 (Acceptance Tests)
 
-Jalankan `npm test` untuk memverifikasi keluaran berikut:
+Jalankan `npm run test01` untuk memverifikasi keluaran berikut:
 
 ```
 [✅ PASS] T-03 - Customer C01 Credit Exposure Baseline (Normal Flow)
@@ -141,17 +141,11 @@ Konflik paling kritis yang diselesaikan oleh M01 adalah **SR-01 (Keinginan Pemil
 - **Bukti Regresi:** Diuji secara otomatis dan tervalidasi melalui test case `T-10`.
 
 ---
+## 7. Hasil Uji Otomatis Modul M02 (Purchase & Inventory)
 
-## 7. Repository Overview (optional)
+Jalankan `npm run test02` untuk memverifikasi keluaran berikut:
 
-This repository contains the source code for the **Arunika FMCG ERP System** prototype, focusing on the Sales & CRM module (M01). Other modules (Purchase, Inventory, Employees, Accounting) will be developed by the remaining team members.
 ```
-
----
-
-## 8. Hasil Uji Otomatis Modul M02 (Purchase & Inventory)
-
-Jalankan `npm test` untuk memverifikasi keluaran berikut:
 
 [✅ PASS] T-05 - Create Purchase Order PO00008 (F-07) (Normal Flow)
    Expected: Document PO00008; Net Rp640.000; PPN 11% Rp70.400; Gross Rp710.400
@@ -179,6 +173,10 @@ Jalankan `npm test` untuk memverifikasi keluaran berikut:
    Details : Stock movement tracked accurately without changing total company valuation.
 ------------------------------------------------------------
 
+```
+Jalankan `npm run checksum` untuk memverifikasi keluaran berikut:
+
+```
 ============================================================
 ACCEPTANCE TEST M02 RESULTS: 5 / 5 PASSED (100%)
 ============================================================
@@ -203,8 +201,7 @@ Ledger Balance Status     : ✅ BALANCED (Rp44.595.000)
 HASIL AKHIR CHECKSUM      : PASSED 100%
 ============================================================
 
----
-
+```
 ## 09. Rencana Deployment & Kebijakan Operasional (M4-W1-05)
 
 Sesuai dengan ketentuan Batasan Teknis, Jadwal Target Mingguan, dan Deployment pada Handout §8 & §9, berikut adalah arsitektur dan strategi rilis aplikasi PT Arunika Distribusi Cepat:
@@ -231,3 +228,9 @@ Aplikasi menerapkan kontrol akses berbasis peran (*Role-Based Access Control*) y
 | `finance_user` | Finance | E06 (Made Wirawan) | `Demo2026!` | Customer Invoice, Vendor Bill, Register Payment, General Ledger. |
 | `hr_user` | HR | E08 (Melati Yusuf) | `Demo2026!` | Direktori Karyawan, Manajemen Departemen, dan Proteksi Data Privat (T-28). |
 | `owner_user` | Owner | *Executive Access* | `Demo2026!` | Dashboard Operasional Eksekutif (KPI Total Stok, AR/AP, Bank) & Full Audit Log. |
+---
+
+
+## 7. Repository Overview (optional)
+
+This repository contains the source code for the **Arunika FMCG ERP System** prototype, focusing on the Sales & CRM module (M01). Other modules (Purchase, Inventory, Employees, Accounting) will be developed by the remaining team members.
