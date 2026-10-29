@@ -202,7 +202,7 @@ HASIL AKHIR CHECKSUM      : PASSED 100%
 ============================================================
 
 ```
-## 09. Rencana Deployment & Kebijakan Operasional (M4-W1-05)
+## 08. Rencana Deployment & Kebijakan Operasional (M4-W1-05)
 
 Sesuai dengan ketentuan Batasan Teknis, Jadwal Target Mingguan, dan Deployment pada Handout §8 & §9, berikut adalah arsitektur dan strategi rilis aplikasi PT Arunika Distribusi Cepat:
 
@@ -231,6 +231,6 @@ Aplikasi menerapkan kontrol akses berbasis peran (*Role-Based Access Control*) y
 ---
 
 
-## 7. Repository Overview (optional)
+## 9. Repository Overview (optional)
 
 This repository contains the source code for the **Arunika FMCG ERP System** prototype, focusing on the Sales & CRM module (M01). Other modules (Purchase, Inventory, Employees, Accounting) will be developed by the remaining team members.

@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node test_m01.js && node test_m02.js",
+    "test01": "node test_m01.js",
+    "test02":" node test_m01.js",
     "checksum": "node verify_checksum.js"
   },
   "keywords": [
