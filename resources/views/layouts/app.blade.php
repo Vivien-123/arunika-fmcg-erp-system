@@ -74,21 +74,14 @@
     <div class="flex-1 flex flex-col overflow-hidden">
         {{-- Control Panel --}}
         <div class="bg-white border-b border-gray-200 px-4 py-2 flex items-center gap-2 flex-wrap">
-            <div class="flex items-center gap-1 text-gray-500 text-xs mr-4">
+            <div class="flex items-center gap-1 text-gray-500 text-xs">
                 <a href="{{ route('home') }}" class="hover:text-[#714B67]">🏠</a>
                 @yield('breadcrumb')
             </div>
             @hasSection('view_switcher')
             <div class="flex border border-gray-300 rounded overflow-hidden text-xs">@yield('view_switcher')</div>
             @endif
-            <div class="flex-1 flex items-center gap-2 ml-auto">
-                @yield('control_panel_extra')
-                <form method="GET" class="flex items-center gap-1 ml-auto">
-                    @foreach(request()->except(['search','page']) as $k=>$v)<input type="hidden" name="{{ $k }}" value="{{ $v }}">@endforeach
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search…" class="border border-gray-300 rounded px-2 py-1 text-xs w-40">
-                    <button type="submit" class="bg-gray-100 border border-gray-300 rounded px-2 py-1 text-xs hover:bg-gray-200">🔍</button>
-                </form>
-            </div>
+            @yield('control_panel_extra')
         </div>
 
         @hasSection('status_bar')
