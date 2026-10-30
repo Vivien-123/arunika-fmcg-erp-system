@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "test01": "node test_m01.js",
-    "test02":" node test_m01.js",
+    "test02": "node test_m02.js",
     "checksum": "node verify_checksum.js"
   },
   "keywords": [

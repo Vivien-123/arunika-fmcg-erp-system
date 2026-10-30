@@ -213,9 +213,12 @@ const server = http.createServer(async (req, res) => {
 
     const soConfirmMatch = pathname.match(/^\/api\/sales-orders\/([A-Za-z0-9_-]+)\/confirm$/);
     if (soConfirmMatch && method === 'POST') {
-      // Role enforcement: only Finance or Owner can confirm sales orders (SR-08)
-      if (role !== 'Finance' && role !== 'Owner') {
-        return sendJson(res, 403, { error: 'Confirmation requires Finance or Owner role (SR-08)' });
+      // Role enforcement: Sales, Finance, or Owner can confirm (SR-03, SR-07/SR-08)
+      // Note: Finance approval for discount > 10% is enforced inside confirmSalesOrder(),
+      // not at the route level — Sales CAN call confirm, but the service will reject if
+      // the discount approval is pending (SR-08).
+      if (!['Sales', 'Finance', 'Owner'].includes(role)) {
+        return sendJson(res, 403, { error: 'Confirmation requires Sales, Finance or Owner role.' });
       }
 
       const soId = soConfirmMatch[1];

@@ -400,7 +400,7 @@
         "company_total": 80,
         "standard_cost": 17000,
         "standard_value": 1360000,
-        "reserved": 8
+        "reserved": 18
       },
       {
         "variant_sku": "FOD-MIE-B12-ORI",
@@ -854,6 +854,13 @@
         "linked_employee": null,
         "status": "Active",
         "test_password": "Demo2026!"
+      },
+      {
+        "username": "sales_user2",
+        "role": "Sales",
+        "linked_employee": "E05",
+        "status": "Active",
+        "test_password": "Demo2026!"
       }
     ],
     "existing_documents": {
@@ -948,9 +955,9 @@
           "has_discount_over_10": true,
           "stock_state": "Reserved 10 P01 di WH-JKT; belum delivered",
           "financial_state": "Belum invoiced; exposure 235.875",
-          "created_at": "2026-10-29T10:38:01.924Z",
+          "created_at": "2026-10-30T16:27:23.387Z",
           "created_by": "sales_user",
-          "confirmed_at": "2026-10-29T10:38:01.928Z",
+          "confirmed_at": "2026-10-30T16:27:23.393Z",
           "confirmed_by": "sales_user"
         }
       ],
@@ -1024,7 +1031,7 @@
       "document_id": "S00008",
       "action": "REJECT_UPDATE_CONFIRMED_ORDER",
       "actor": "sales_user",
-      "timestamp": "2026-10-29T10:38:01.929Z",
+      "timestamp": "2026-10-30T16:27:23.395Z",
       "details": "Attempted to modify prices/lines on confirmed order S00008. Blocked per SR-12.",
       "result": "BLOCKED_ORDER_LOCKED"
     },
@@ -1033,7 +1040,7 @@
       "document_id": "S00008",
       "action": "CONFIRM_SALES_ORDER",
       "actor": "sales_user",
-      "timestamp": "2026-10-29T10:38:01.928Z",
+      "timestamp": "2026-10-30T16:27:23.393Z",
       "details": "Confirmed Sales Order S00008 for PT Toko Makmur Sejahtera. Net: Rp212500, Gross: Rp235875. Customer exposure is now Rp1357875. Lines and prices locked.",
       "result": "Confirmed; S00008 created once; lines locked"
     },
@@ -1042,7 +1049,7 @@
       "document_id": "S00008",
       "action": "FINANCE_DISCOUNT_APPROVAL",
       "actor": "finance_user",
-      "timestamp": "2026-10-29T10:38:01.927Z",
+      "timestamp": "2026-10-30T16:27:23.391Z",
       "details": "Finance approved discount for order S00008 (exceeded 10% threshold).",
       "result": "Discount Approved"
     },
@@ -1051,7 +1058,7 @@
       "document_id": "S00008",
       "action": "BLOCK_CONFIRM_DISCOUNT_UNAPPROVED",
       "actor": "sales_user",
-      "timestamp": "2026-10-29T10:38:01.925Z",
+      "timestamp": "2026-10-30T16:27:23.389Z",
       "details": "Sales attempted to confirm order S00008 with discount > 10% without Finance approval. Blocked per SR-07/SR-08.",
       "result": "BLOCKED_APPROVAL_REQUIRED"
     },
@@ -1060,7 +1067,7 @@
       "document_id": "S00008",
       "action": "CREATE_QUOTATION",
       "actor": "sales_user",
-      "timestamp": "2026-10-29T10:38:01.924Z",
+      "timestamp": "2026-10-30T16:27:23.387Z",
       "details": "Created draft Quotation S00008 for PT Toko Makmur Sejahtera. Net: Rp212500, Gross: Rp235875.",
       "result": "Success"
     },

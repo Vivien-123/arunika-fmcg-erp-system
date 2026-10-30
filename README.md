@@ -222,6 +222,7 @@ Aplikasi menerapkan kontrol akses berbasis peran (*Role-Based Access Control*) y
 | Username | Peran (*Role*) | Pegawai Terhubung (*Employee*) | Password Uji | Hak Akses & Cakupan Modul |
 | :--- | :--- | :--- | :--- | :--- |
 | `sales_user` | Sales | E04 (Dini Pratiwi) | `Demo2026!` | CRM Leads, Quotation, Sales Order, dan Manajemen Kontak Pelanggan. |
+| `sales_user2` | Sales | E05 (Farhan Saputra) | `Demo2026!` | CRM Leads, Quotation, Sales Order, dan Manajemen Kontak Pelanggan. |
 | `warehouse_mgr` | Warehouse | E01 (Sari Prameswari) | `Demo2026!` | Stock Overview, Validasi Delivery Order / Goods Receipt, Transfer Antar Gudang. |
 | `warehouse_user` | Warehouse | E02 (Arif Maulana) | `Demo2026!` | Operasional gudang harian dan entry data fisik barang masuk. |
 | `purchase_user` | Purchase | E07 (Rita Kusuma) | `Demo2026!` | Permintaan Pembelian (RFQ), Purchase Order, dan Katalog Vendor Pricelist. |
