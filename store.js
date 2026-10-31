@@ -20,6 +20,10 @@ class Store {
         const parsed = JSON.parse(raw);
         this.state = parsed.state;
         this.auditLogs = parsed.auditLogs || [];
+        // Ensure M4 accounting collections exist even on old data_store.json files
+        if (!this.state.invoices)        this.state.invoices        = [];
+        if (!this.state.journal_entries) this.state.journal_entries = [];
+        if (!this.state.sequences)       this.state.sequences       = {};
         return;
       } catch (err) {
         console.warn('Failed to load data_store.json, resetting to seed baseline:', err.message);
@@ -30,6 +34,38 @@ class Store {
 
   resetToSeed() {
     this.state = getInitialSeed();
+
+    // ── M4: initialise accounting collections ─────────────────────────
+    this.state.invoices        = [];
+    this.state.journal_entries = [];
+    this.state.sequences       = {};
+
+    // Opening balance journal entries (Handout §4, M4-W1-02)
+    // Dr Bank 20.000.000 + Dr AR 1.500.000 + Dr Persediaan 23.095.000
+    // = Cr AP 700.000 + Cr Modal 43.895.000
+    this.state.journal_entries.push(
+      { id:1, invoice_doc_number:null, journal_type:'opening', reference:'OPENING-BALANCE',
+        idempotency_key:'opening|OPENING-BALANCE|1000|3000|20000000',
+        debit_account:'1000', credit_account:'3000', amount:20000000,
+        description:'Opening Balance: Kas dan Bank Rp20.000.000',
+        posted_by:'system', posted_at:'2026-10-20T00:00:00.000Z', is_reversed:false },
+      { id:2, invoice_doc_number:null, journal_type:'opening', reference:'OPENING-BALANCE',
+        idempotency_key:'opening|OPENING-BALANCE|1100|3000|1500000',
+        debit_account:'1100', credit_account:'3000', amount:1500000,
+        description:'Opening Balance: Piutang Usaha AR Rp1.500.000 (C01 Rp900.000 + C02 Rp600.000)',
+        posted_by:'system', posted_at:'2026-10-20T00:00:00.000Z', is_reversed:false },
+      { id:3, invoice_doc_number:null, journal_type:'opening', reference:'OPENING-BALANCE',
+        idempotency_key:'opening|OPENING-BALANCE|1300|3000|23095000',
+        debit_account:'1300', credit_account:'3000', amount:23095000,
+        description:'Opening Balance: Persediaan Barang Rp23.095.000 (WH-JKT Rp17.315.000 + HUB-BDG Rp5.780.000)',
+        posted_by:'system', posted_at:'2026-10-20T00:00:00.000Z', is_reversed:false },
+      { id:4, invoice_doc_number:null, journal_type:'opening', reference:'OPENING-BALANCE',
+        idempotency_key:'opening|OPENING-BALANCE|3000|2000|700000',
+        debit_account:'3000', credit_account:'2000', amount:700000,
+        description:'Opening Balance: Utang Usaha AP Rp700.000 (V04)',
+        posted_by:'system', posted_at:'2026-10-20T00:00:00.000Z', is_reversed:false }
+    );
+
     this.auditLogs = [
       {
         id: 1,

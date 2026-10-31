@@ -12,12 +12,65 @@ class FmcgSeeder extends Seeder
     {
         $now = now();
 
-        // Clear in dependency order
+        // Clear in dependency order (accounting tables first for FK safety)
         DB::table('audit_logs')->delete();
+        DB::table('journal_entries')->delete();
+        DB::table('invoice_items')->delete();
+        DB::table('invoices')->delete();
+        DB::table('chart_of_accounts')->delete();
         DB::table('employee_private_records')->delete();
         DB::table('employees')->delete();
         DB::table('users')->delete();
         DB::table('departments')->delete();
+
+        // ── Chart of Accounts (M4-W1-01 · Handout §4) ──────────────────
+        DB::table('chart_of_accounts')->insert([
+            ['code'=>'1000', 'name'=>'Kas dan Bank',                    'type'=>'Asset',    'normal_balance'=>'Debit',  'is_active'=>1, 'created_at'=>$now, 'updated_at'=>$now],
+            ['code'=>'1100', 'name'=>'Piutang Usaha',                   'type'=>'Asset',    'normal_balance'=>'Debit',  'is_active'=>1, 'created_at'=>$now, 'updated_at'=>$now],
+            ['code'=>'1300', 'name'=>'Persediaan Barang',               'type'=>'Asset',    'normal_balance'=>'Debit',  'is_active'=>1, 'created_at'=>$now, 'updated_at'=>$now],
+            ['code'=>'1350', 'name'=>'Stock Interim / Receipt Clearing','type'=>'Asset',    'normal_balance'=>'Debit',  'is_active'=>1, 'created_at'=>$now, 'updated_at'=>$now],
+            ['code'=>'1400', 'name'=>'PPN Masukan',                     'type'=>'Asset',    'normal_balance'=>'Debit',  'is_active'=>1, 'created_at'=>$now, 'updated_at'=>$now],
+            ['code'=>'1500', 'name'=>'Aset Tetap',                      'type'=>'Asset',    'normal_balance'=>'Debit',  'is_active'=>1, 'created_at'=>$now, 'updated_at'=>$now],
+            ['code'=>'2000', 'name'=>'Utang Usaha',                     'type'=>'Liability','normal_balance'=>'Credit', 'is_active'=>1, 'created_at'=>$now, 'updated_at'=>$now],
+            ['code'=>'2100', 'name'=>'PPN Keluaran',                    'type'=>'Liability','normal_balance'=>'Credit', 'is_active'=>1, 'created_at'=>$now, 'updated_at'=>$now],
+            ['code'=>'2200', 'name'=>'Utang Biaya',                     'type'=>'Liability','normal_balance'=>'Credit', 'is_active'=>1, 'created_at'=>$now, 'updated_at'=>$now],
+            ['code'=>'3000', 'name'=>'Modal / Saldo Awal',              'type'=>'Equity',   'normal_balance'=>'Credit', 'is_active'=>1, 'created_at'=>$now, 'updated_at'=>$now],
+            ['code'=>'4000', 'name'=>'Penjualan',                       'type'=>'Income',   'normal_balance'=>'Credit', 'is_active'=>1, 'created_at'=>$now, 'updated_at'=>$now],
+            ['code'=>'4100', 'name'=>'Retur Penjualan',                 'type'=>'Income',   'normal_balance'=>'Debit',  'is_active'=>1, 'created_at'=>$now, 'updated_at'=>$now],
+            ['code'=>'4200', 'name'=>'Diskon Penjualan',                'type'=>'Income',   'normal_balance'=>'Debit',  'is_active'=>1, 'created_at'=>$now, 'updated_at'=>$now],
+            ['code'=>'5100', 'name'=>'HPP',                             'type'=>'Expense',  'normal_balance'=>'Debit',  'is_active'=>1, 'created_at'=>$now, 'updated_at'=>$now],
+            ['code'=>'6100', 'name'=>'Beban Operasional',               'type'=>'Expense',  'normal_balance'=>'Debit',  'is_active'=>1, 'created_at'=>$now, 'updated_at'=>$now],
+        ]);
+
+        // ── Opening Balance Journal Entries (Handout §4 · M4-W1-02) ─────
+        // Dr Bank 20.000.000 + Dr AR 1.500.000 + Dr Persediaan 23.095.000
+        // = Cr AP 700.000 + Cr Modal 43.895.000  (total Rp44.595.000 balanced)
+        DB::table('journal_entries')->insert([
+            ['invoice_id'=>null, 'journal_type'=>'opening', 'reference'=>'OPENING-BALANCE',
+             'idempotency_key'=>md5('opening|OPENING-BALANCE|1000|3000|20000000'),
+             'debit_account'=>'1000', 'credit_account'=>'3000', 'amount'=>20000000,
+             'description'=>'Opening Balance: Kas dan Bank Rp20.000.000',
+             'posted_by'=>'system', 'posted_at'=>$now, 'is_reversed'=>0, 'reversed_by_entry_id'=>null,
+             'created_at'=>$now, 'updated_at'=>$now],
+            ['invoice_id'=>null, 'journal_type'=>'opening', 'reference'=>'OPENING-BALANCE',
+             'idempotency_key'=>md5('opening|OPENING-BALANCE|1100|3000|1500000'),
+             'debit_account'=>'1100', 'credit_account'=>'3000', 'amount'=>1500000,
+             'description'=>'Opening Balance: Piutang Usaha AR Rp1.500.000 (C01 Rp900.000 + C02 Rp600.000)',
+             'posted_by'=>'system', 'posted_at'=>$now, 'is_reversed'=>0, 'reversed_by_entry_id'=>null,
+             'created_at'=>$now, 'updated_at'=>$now],
+            ['invoice_id'=>null, 'journal_type'=>'opening', 'reference'=>'OPENING-BALANCE',
+             'idempotency_key'=>md5('opening|OPENING-BALANCE|1300|3000|23095000'),
+             'debit_account'=>'1300', 'credit_account'=>'3000', 'amount'=>23095000,
+             'description'=>'Opening Balance: Persediaan Barang Rp23.095.000 (WH-JKT Rp17.315.000 + HUB-BDG Rp5.780.000)',
+             'posted_by'=>'system', 'posted_at'=>$now, 'is_reversed'=>0, 'reversed_by_entry_id'=>null,
+             'created_at'=>$now, 'updated_at'=>$now],
+            ['invoice_id'=>null, 'journal_type'=>'opening', 'reference'=>'OPENING-BALANCE',
+             'idempotency_key'=>md5('opening|OPENING-BALANCE|3000|2000|700000'),
+             'debit_account'=>'3000', 'credit_account'=>'2000', 'amount'=>700000,
+             'description'=>'Opening Balance: Utang Usaha AP Rp700.000 (V04)',
+             'posted_by'=>'system', 'posted_at'=>$now, 'is_reversed'=>0, 'reversed_by_entry_id'=>null,
+             'created_at'=>$now, 'updated_at'=>$now],
+        ]);
 
         // Departments
         DB::table('departments')->insert([
