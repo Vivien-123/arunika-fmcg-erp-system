@@ -71,17 +71,22 @@
     </aside>
     <?php endif; ?>
 
-    <div class="flex-1 flex flex-col overflow-hidden">
+    <div class="flex-1 flex flex-col min-w-0">
         
-        <div class="bg-white border-b border-gray-200 px-4 py-2 flex items-center gap-2 flex-wrap">
-            <div class="flex items-center gap-1 text-gray-500 text-xs">
+        <div class="bg-white border-b border-gray-200 px-4 py-2 flex items-center gap-2 min-w-0">
+            
+            <div class="flex items-center gap-1 text-gray-500 text-xs shrink-0">
                 <a href="<?php echo e(route('home')); ?>" class="hover:text-[#714B67]">🏠</a>
                 <?php echo $__env->yieldContent('breadcrumb'); ?>
             </div>
+            
             <?php if (! empty(trim($__env->yieldContent('view_switcher')))): ?>
-            <div class="flex border border-gray-300 rounded overflow-hidden text-xs"><?php echo $__env->yieldContent('view_switcher'); ?></div>
+            <div class="flex border border-gray-300 rounded overflow-hidden text-xs shrink-0"><?php echo $__env->yieldContent('view_switcher'); ?></div>
             <?php endif; ?>
-            <?php echo $__env->yieldContent('control_panel_extra'); ?>
+            
+            <div class="flex items-center gap-2 flex-1 min-w-0">
+                <?php echo $__env->yieldContent('control_panel_extra'); ?>
+            </div>
         </div>
 
         <?php if (! empty(trim($__env->yieldContent('status_bar')))): ?>
@@ -104,7 +109,7 @@
         </div>
         <?php endif; ?>
 
-        <main class="flex-1 p-4 overflow-auto"><?php echo $__env->yieldContent('content'); ?></main>
+        <main class="flex-1 p-4 overflow-auto w-full"><?php echo $__env->yieldContent('content'); ?></main>
 
         <?php if (! empty(trim($__env->yieldContent('chatter')))): ?>
         <div class="bg-white border-t border-gray-200 px-4 py-3"><?php echo $__env->yieldContent('chatter'); ?></div>
