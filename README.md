@@ -235,3 +235,195 @@ Aplikasi menerapkan kontrol akses berbasis peran (*Role-Based Access Control*) y
 ## 9. Repository Overview (optional)
 
 This repository contains the source code for the **Arunika FMCG ERP System** prototype, focusing on the Sales & CRM module (M01). Other modules (Purchase, Inventory, Employees, Accounting) will be developed by the remaining team members.
+
+---
+
+## 10. Technology Stack & Platform Decisions
+
+> References: Handout §8 (Technical Constraints), §10 (Deployment & Grading Requirements)
+
+### Backend
+
+| Layer | Technology | Rationale |
+| :--- | :--- | :--- |
+| **Framework** | Laravel 10 (PHP 8.1+) | Full MVC, Eloquent ORM, Artisan CLI, Sanctum auth |
+| **Application Server** | PHP built-in / Laravel Artisan `serve` | Zero-config local dev; swappable for Apache/Nginx on deploy |
+| **Auth & RBAC** | `CheckRole` middleware + `User::role` column | Enforces per-route role gates (Sales, Warehouse, Finance, Purchase, HR, Owner) with automatic `access_denied` audit entry on rejection |
+| **Business Logic** | `AccountingService` + domain Model methods | SR-02 (invoice only delivered qty), SR-06 (3-way match), SR-13 (credit note ceiling), SR-16 (idempotency key), SR-20 (overpayment guard) |
+
+### Database
+
+| Layer | Technology | Notes |
+| :--- | :--- | :--- |
+| **Local dev** | SQLite (`database/database.sqlite`) | Zero-install; all 18 application tables live here |
+| **ORM** | Laravel Eloquent | Models for all 18 tables; `$primaryKey`, `$keyType`, `$incrementing` set correctly for string PKs (C01, P01, WH-JKT…) |
+| **Schema + Seed** | `php artisan db:master-seed` (`RunFmcgMasterSeed.php`) | Single command drops, recreates, and repopulates the full Handout §4 baseline: 880 units, Rp23.095.000 stock value, Rp44.595.000 balanced opening journals |
+| **Production** | MySQL / PostgreSQL compatible | Laravel driver swap via `.env`; no SQLite-specific queries used |
+
+### Frontend & UI
+
+| Layer | Technology | Notes |
+| :--- | :--- | :--- |
+| **Templating** | Laravel Blade | Server-side rendering; shared layouts, components, partials |
+| **CSS Framework** | Tailwind CSS | Utility-first; configured to emulate Odoo 17 Desktop Browser aesthetic |
+| **UI Pattern** | Odoo 17 Desktop Browser | App Switcher top-nav, List / Kanban / Form views, status-bar breadcrumb, smart buttons, log-notes chatter |
+| **JS** | Vanilla JS (minimal) | Form interactions, inline confirmation dialogs; no build pipeline required |
+
+### Deployment
+
+| Target | Platform | Details |
+| :--- | :--- | :--- |
+| **Public URL** | Render / Railway / Fly.io | Standard PHP/Laravel runtime; accessible to graders without VPN |
+| **Database reset** | `php artisan db:master-seed` | Restores clean §4 baseline for independent test-case execution |
+| **Credentials** | See Section 8 credential table | All test accounts: password `Demo2026!` |
+
+---
+
+## 11. System Architecture Diagram
+
+```mermaid
+flowchart TD
+    %% ── CLIENT LAYER ──────────────────────────────────────────────────────
+    subgraph CLIENT ["Client Layer — Odoo 17 Browser UI (Blade + Tailwind)"]
+        direction LR
+        LIST["List View\n(paginated tables)"]
+        KANBAN["Kanban View\n(CRM pipeline)"]
+        FORM["Form View\n(document detail +\nsmart buttons +\nlog notes)"]
+    end
+
+    %% ── SECURITY & AUDIT LAYER ────────────────────────────────────────────
+    subgraph SECURITY ["Security & Audit Control Layer"]
+        RBAC["CheckRole Middleware\n(Sales · Warehouse · Finance\nPurchase · HR · Owner)"]
+        IDEM["Idempotency Checker\nJournalEntry::alreadyPosted()\n(SR-16 double-post guard)"]
+        AUDIT["Immutable Audit Log\nAuditLog::record()\nAll state changes captured"]
+    end
+
+    %% ── APPLICATION CORE ──────────────────────────────────────────────────
+    subgraph APP ["Application Core (Laravel Controllers + Services + Models)"]
+        direction TB
+        SALES["Sales & CRM Module\nF-01 F-02 F-04 F-05 F-06 F-10\nLead → Quotation → SO\nCredit Limit · Discount Approval\nPrice Lock SR-12"]
+        PURCH["Purchase & Inventory Module\nF-03 F-07 F-08 F-11 F-12 F-17\nRFQ → PO → Receipt\nFEFO Lot · Anti-Negative Stock SR-04\nStock Transfer"]
+        ACCT["Accounting & Invoicing Module\nF-09 F-13 F-14 F-15 F-16\nAccountingService\nCustomer Invoice · Vendor Bill\nCredit Note · Payment · General Ledger\nPPN 11% SR-16 SR-20"]
+        HR["Employees & HR Module\nF-18 F-19\nEmployee Directory\nPrivate Records SR-15\nSign-off Validation SR-17 SR-18"]
+    end
+
+    %% ── DATABASE LAYER ────────────────────────────────────────────────────
+    subgraph DB ["Database Layer — SQLite (dev) / MySQL-PostgreSQL (prod)"]
+        direction LR
+        CORE_T["Core Tables\nusers · departments · employees\nemployee_private_records\naudit_logs"]
+        CONTACTS["Contact Tables\ncontacts_customers · contacts_vendors\ntax_rates · payment_terms"]
+        INVENTORY_T["Inventory Tables\nproducts · vendor_pricelist\nwarehouses_locations\nopening_stock · product_lots"]
+        ACCT_T["Accounting Tables\nchart_of_accounts · invoices\ninvoice_items · journal_entries"]
+        SEED["Baseline Seed\n(php artisan db:master-seed)\n880 units · Rp23.095.000\nRp44.595.000 balanced journals"]
+    end
+
+    %% ── CONNECTIONS ───────────────────────────────────────────────────────
+    CLIENT -->|HTTP Request| RBAC
+    RBAC -->|Authorized| APP
+    RBAC -->|Denied → 403 + audit_log| AUDIT
+    APP --> IDEM
+    APP --> AUDIT
+    APP --> DB
+    AUDIT --> DB
+```
+
+---
+
+## 12. Data Flow & End-to-End Business Lifecycles
+
+### Flow 1 — Order to Cash (O2C)
+
+```mermaid
+flowchart TD
+    L["Lead L00003\nPartner: C03\nExp. Revenue: Rp500.000"]
+    O["Opportunity\nStage: Qualified\nSR-19: partner relation locked"]
+    Q["Draft Quotation\nSKU · Qty · Unit Price\nPPN 11% calculated per line"]
+    DC{"Discount > 10%?\nSR-07 / SR-08"}
+    TA["Status: To Approve\nBlocked until Finance sign-off"]
+    CC{"Credit Exposure Check\nSR-11\n(open_ar + S00007 + new gross)\nvs credit_limit"}
+    BLK["BLOCKED\nError message + audit log"]
+    SO["Confirmed Sales Order\nUnique sequence S000XX\nPrices & lines locked SR-12"]
+    RES["Stock Reservation\nopening_stock.reserved += qty\nAvailable qty decremented SR-22"]
+    DO["Delivery Order\nPick FEFO lots (P03) SR-07\nValidate sign-off: Active WH employee SR-17\nStatus → Done"]
+    SM["Stock Move Journal\nDr COGS 5100 / Cr Inventory 1300\nPerpetual standard cost SR-03"]
+    CI["Customer Invoice\nQty = Delivered qty only SR-02\nINV-XXXXX · Net · PPN · Gross"]
+    AR["AR Journal Posted\nDr AR 1100 / Cr Sales 4000\nDr AR 1100 / Cr VAT Output 2100\nSR-16 idempotency key"]
+    PAY["Register Payment\nDr Bank 1000 / Cr AR 1100\nOutstanding decremented SR-20\nStatus → Paid if fully settled"]
+
+    L -->|Convert| O
+    O -->|Generate Quotation| Q
+    Q --> DC
+    DC -- Yes --> TA
+    TA -->|Finance Approves| CC
+    DC -- No --> CC
+    CC -- Exceeds Limit --> BLK
+    CC -- Within Limit --> SO
+    SO --> RES
+    RES --> DO
+    DO --> SM
+    DO --> CI
+    CI --> AR
+    AR --> PAY
+```
+
+---
+
+### Flow 2 — Procure to Pay (P2P)
+
+```mermaid
+flowchart TD
+    RFQ["Request for Quotation RFQ\nVendor from contacts_vendors\nSKU from vendor_pricelist SR-21"]
+    PO["Confirmed Purchase Order\nUnit price locked at confirm SR-21\nStatus: Confirmed\nRelated Receipt = 0, Bill = 0"]
+    RCV["Goods Receipt\nPhysical count vs PO qty"]
+    INSP{"Inspection\nAccepted qty / Rejected qty"}
+    ACC["Accepted Qty Recorded\nopening_stock.on_hand += accepted\nLot created if lot-tracked SR-07"]
+    REJ["Rejected Qty\nReturned to vendor\nNo stock move generated"]
+    INT["Stock Interim Journal\nDr Stock Interim 1350\nCr AP 2000\n(provisional — before bill)"]
+    VB["Vendor Bill\nQty = Accepted receipt qty only SR-06\n3-way match PO × Receipt × Bill\nBILL-XXXXX"]
+    APJ["AP Journal Posted\nDr Inventory 1300 / Cr AP 2000 net\nDr VAT Input 1400 / Cr AP 2000 tax\nSR-16 idempotency key\nInterim 1350 cleared"]
+    PAY["Register Payment\nDr AP 2000 / Cr Bank 1000\nOutstanding decremented SR-20\nStatus → Paid if fully settled"]
+
+    RFQ -->|Vendor confirms price| PO
+    PO -->|Goods arrive| RCV
+    RCV --> INSP
+    INSP -- Accepted --> ACC
+    INSP -- Rejected --> REJ
+    ACC --> INT
+    INT -->|Match to PO| VB
+    VB --> APJ
+    APJ --> PAY
+```
+
+---
+
+### Flow 3 — FMCG Special Controls
+
+```mermaid
+flowchart TD
+    subgraph FEFO ["SR-07 — FEFO Lot Selection (Product P03 · BEV-TEA-C24-LCH)"]
+        direction LR
+        REQ["Delivery Order\nneeds 25 karton of P03"]
+        L1["LOT-TEA-01\n15 qty · WH-JKT\nexp 2026-11-15 ← EARLIEST"]
+        L2["LOT-TEA-02\n20 qty · WH-JKT\nexp 2027-02-28"]
+        L3["LOT-TEA-03\n15 qty · HUB-BDG\nexp 2027-03-15"]
+        PICK["FEFO Pick Result\n→ LOT-TEA-01: 15 units (exhausted)\n→ LOT-TEA-02: 10 units (partial)\nTotal allocated: 25 units"]
+        REMAIN["Remaining after pick\nLOT-TEA-01: 0 (consumed)\nLOT-TEA-02: 10 remaining\nLOT-TEA-03: 15 untouched"]
+        REQ --> L1 & L2 & L3
+        L1 -->|"Sort by expiry_date ASC\nProductLot::fefoLotsFor()"| PICK
+        L2 --> PICK
+        PICK --> REMAIN
+    end
+
+    subgraph SIGNOFF ["SR-17 / SR-18 — Employee Active Status Gate"]
+        direction LR
+        ATTEMPT["Sign-off attempt\non Delivery / Receipt"]
+        CHK{"Employee::canSignOff()\nstatus == Aktif AND\ndept == D-WH AND\nmapped_user_id NOT NULL"}
+        OK["Sign-off Accepted\nDocument → Done\nAudit log: signed_off"]
+        BLOCK["Sign-off REJECTED\nAudit log: sign_off_rejected\nExample: E03 Naya Putri (Nonaktif)\ncannot sign off RCV-ATTEMPT-001"]
+        ATTEMPT --> CHK
+        CHK -- Passes --> OK
+        CHK -- Fails --> BLOCK
+    end
+```
+
+---
