@@ -9,15 +9,15 @@
     $menus = $user->allowedMenus();
 
     $allMenus = [
-        'Sales'      => ['icon'=>'🛒', 'desc'=>'Order to Cash',        'url'=>'#',                       'gradient'=>'from-orange-400 to-orange-500'],
-        'CRM'        => ['icon'=>'📋', 'desc'=>'Lead & Opportunity',    'url'=>'#',                       'gradient'=>'from-yellow-400 to-amber-500'],
-        'Purchase'   => ['icon'=>'📦', 'desc'=>'Procure to Pay',        'url'=>'#',                       'gradient'=>'from-blue-400 to-blue-600'],
-        'Inventory'  => ['icon'=>'🏭', 'desc'=>'Stok & Transfer',       'url'=>'#',                       'gradient'=>'from-cyan-400 to-teal-500'],
-        'Accounting' => ['icon'=>'📊', 'desc'=>'Jurnal & Ledger',       'url'=>'#',                       'gradient'=>'from-green-400 to-emerald-600'],
-        'Invoicing'  => ['icon'=>'🧾', 'desc'=>'Invoice & Pembayaran',  'url'=>'#',                       'gradient'=>'from-emerald-400 to-green-600'],
-        'Employees'  => ['icon'=>'👤', 'desc'=>'Pegawai & Departemen',  'url'=>route('employees.index'),  'gradient'=>'from-purple-400 to-violet-600'],
-        'Reporting'  => ['icon'=>'📈', 'desc'=>'KPI & Audit Trail',     'url'=>route('reporting.audit'),  'gradient'=>'from-pink-400 to-rose-500'],
-        'Wireframes' => ['icon'=>'🖼️', 'desc'=>'S-01 s/d S-18',        'url'=>route('wireframes'),       'gradient'=>'from-gray-400 to-gray-600'],
+        'Sales'      => ['icon'=>'🛒', 'desc'=>'Order to Cash',        'url'=>'#',                                   'gradient'=>'from-orange-400 to-orange-500'],
+        'CRM'        => ['icon'=>'📋', 'desc'=>'Lead & Opportunity',    'url'=>'#',                                   'gradient'=>'from-yellow-400 to-amber-500'],
+        'Purchase'   => ['icon'=>'📦', 'desc'=>'Procure to Pay',        'url'=>'#',                                   'gradient'=>'from-blue-400 to-blue-600'],
+        'Inventory'  => ['icon'=>'🏭', 'desc'=>'Stok & Transfer',       'url'=>'#',                                   'gradient'=>'from-cyan-400 to-teal-500'],
+        'Accounting' => ['icon'=>'📊', 'desc'=>'Jurnal & Ledger',       'url'=>route('accounting.invoices.index'),    'gradient'=>'from-green-400 to-emerald-600'],
+        'Invoicing'  => ['icon'=>'🧾', 'desc'=>'Invoice & Pembayaran',  'url'=>route('accounting.invoices.index'),    'gradient'=>'from-emerald-400 to-green-600'],
+        'Employees'  => ['icon'=>'👤', 'desc'=>'Pegawai & Departemen',  'url'=>route('employees.index'),              'gradient'=>'from-purple-400 to-violet-600'],
+        'Reporting'  => ['icon'=>'📈', 'desc'=>'KPI & Audit Trail',     'url'=>route('reporting.audit'),              'gradient'=>'from-pink-400 to-rose-500'],
+        'Wireframes' => ['icon'=>'🖼️', 'desc'=>'S-01 s/d S-18',        'url'=>route('wireframes'),                   'gradient'=>'from-gray-400 to-gray-600'],
     ];
 
     // Hanya menu yang diizinkan saja
