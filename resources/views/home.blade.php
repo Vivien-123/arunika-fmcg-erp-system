@@ -9,8 +9,8 @@
     $menus = $user->allowedMenus();
 
     $allMenus = [
-        'Sales'      => ['icon'=>'🛒', 'desc'=>'Order to Cash',        'url'=>'#',                       'gradient'=>'from-orange-400 to-orange-500'],
-        'CRM'        => ['icon'=>'📋', 'desc'=>'Lead & Opportunity',    'url'=>'#',                       'gradient'=>'from-yellow-400 to-amber-500'],
+        'Sales'      => ['icon'=>'🛒', 'desc'=>'Order to Cash',        'url'=>route('sales.orders.index'),  'gradient'=>'from-orange-400 to-orange-500'],
+        'CRM'        => ['icon'=>'📋', 'desc'=>'Lead & Opportunity',    'url'=>route('crm.leads.index'),     'gradient'=>'from-yellow-400 to-amber-500'],
         'Purchase'   => ['icon'=>'📦', 'desc'=>'Procure to Pay',        'url'=>'#',                       'gradient'=>'from-blue-400 to-blue-600'],
         'Inventory'  => ['icon'=>'🏭', 'desc'=>'Stok & Transfer',       'url'=>'#',                       'gradient'=>'from-cyan-400 to-teal-500'],
         'Accounting' => ['icon'=>'📊', 'desc'=>'Jurnal & Ledger',       'url'=>'#',                       'gradient'=>'from-green-400 to-emerald-600'],
