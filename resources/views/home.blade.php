@@ -16,7 +16,7 @@
         'Accounting' => ['icon'=>'📊', 'desc'=>'Jurnal & Ledger',       'url'=>route('accounting.invoices.index'), 'gradient'=>'from-green-400 to-emerald-600'],
         'Invoicing'  => ['icon'=>'🧾', 'desc'=>'Invoice & Pembayaran',  'url'=>route('accounting.invoices.index'), 'gradient'=>'from-emerald-400 to-green-600'],
         'Employees'  => ['icon'=>'👤', 'desc'=>'Pegawai & Departemen',  'url'=>route('employees.index'),           'gradient'=>'from-purple-400 to-violet-600'],
-        'Reporting'  => ['icon'=>'📈', 'desc'=>'KPI & Audit Trail',     'url'=>route('reporting.audit'),           'gradient'=>'from-pink-400 to-rose-500'],
+        'Reporting'  => ['icon'=>'📈', 'desc'=>'KPI & Audit Trail',     'url'=>route('reporting.dashboard'),         'gradient'=>'from-pink-400 to-rose-500'],
         'Wireframes' => ['icon'=>'🖼️', 'desc'=>'S-01 s/d S-18',        'url'=>route('wireframes'),                'gradient'=>'from-gray-400 to-gray-600'],
     ];
 

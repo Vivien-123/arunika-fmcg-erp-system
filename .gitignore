@@ -3,3 +3,10 @@ node_modules/
 data_store.json
 npm-debug.log
 .DS_Store
+
+# Laravel generated files
+storage/framework/sessions/
+storage/framework/views/
+storage/logs/
+database/database.sqlite
+database/database.sqlite-journal

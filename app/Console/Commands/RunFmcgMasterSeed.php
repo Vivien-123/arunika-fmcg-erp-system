@@ -402,6 +402,72 @@ class RunFmcgMasterSeed extends Command
             $t->timestamps();
         });
         $this->line('   created  audit_logs');
+
+        // ── leads (CRM — F-04, SR-19) ───────────────────────────────────
+        Schema::create('leads', function (Blueprint $t) {
+            $t->string('id')->primary();        // L00001 …
+            $t->string('partner_id')->nullable();
+            $t->string('partner_name')->nullable();
+            $t->string('stage');                // new | qualified | won | lost
+            $t->string('salesperson_id')->nullable();
+            $t->string('salesperson_name')->nullable();
+            $t->unsignedBigInteger('expected_revenue')->default(0);
+            $t->text('notes')->nullable();
+            $t->string('created_by')->nullable();
+            $t->timestamps();
+        });
+        $this->line('   created  leads');
+
+        // ── sales_orders (F-05, F-06, F-10, SR-11, SR-12) ────────────────
+        Schema::create('sales_orders', function (Blueprint $t) {
+            $t->string('id')->primary();        // S00007, S00008 …
+            $t->string('customer_id');
+            $t->foreign('customer_id')->references('id')->on('contacts_customers');
+            $t->string('customer_name');
+            $t->string('status')->default('draft');
+            // Discount approval workflow (SR-07/08)
+            $t->string('discount_approval_status')->default('not_required');
+            $t->string('discount_approved_by')->nullable();
+            $t->timestamp('discount_approved_at')->nullable();
+            $t->unsignedBigInteger('untaxed_amount')->default(0);
+            $t->unsignedBigInteger('tax_amount')->default(0);
+            $t->unsignedBigInteger('gross_amount')->default(0);
+            $t->string('payment_terms')->nullable();
+            $t->date('order_date')->nullable();
+            $t->date('delivery_promise_date')->nullable();  // SR-03: max 3-day promise
+            $t->string('created_by')->nullable();
+            $t->string('confirmed_by')->nullable();
+            $t->timestamp('confirmed_at')->nullable();
+            $t->string('lead_id')->nullable();
+            $t->timestamps();
+        });
+        $this->line('   created  sales_orders');
+
+        // ── sales_order_lines (F-05, SR-12 price lock, SR-22 reservation) ─
+        Schema::create('sales_order_lines', function (Blueprint $t) {
+            $t->id();
+            $t->string('sales_order_id');
+            $t->foreign('sales_order_id')->references('id')->on('sales_orders')->cascadeOnDelete();
+            $t->string('product_id');
+            $t->string('variant_sku');
+            $t->string('product_name');
+            $t->string('unit');
+            $t->unsignedInteger('quantity');
+            $t->unsignedBigInteger('unit_price');           // locked on confirm (SR-12)
+            $t->decimal('discount_percent', 5, 2)->default(0.00);
+            $t->boolean('is_locked')->default(false);       // SR-12: true after confirm
+            $t->unsignedBigInteger('net_amount');
+            $t->unsignedBigInteger('tax_amount');
+            $t->unsignedBigInteger('gross_amount');
+            // Delivery tracking (for invoicing SR-02)
+            $t->unsignedInteger('delivered_qty')->default(0);
+            $t->unsignedInteger('invoiced_qty')->default(0);
+            // Stock reservation (SR-22)
+            $t->unsignedInteger('reserved_qty')->default(0);
+            $t->string('source_location')->default('WH-JKT');
+            $t->timestamps();
+        });
+        $this->line('   created  sales_order_lines');
     }
 
     // ═══════════════════════════════════════════════════════════════════════
