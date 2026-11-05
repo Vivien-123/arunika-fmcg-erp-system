@@ -214,17 +214,72 @@ class AccountingService
     }
 
     // ── 3-Way Match ───────────────────────────────────────────────────────
-    public function validateThreeWayMatch(string $poId, string $variantSku, int $orderedQty, int $acceptedQty, int $alreadyBilled, int $requestBillQty): array
+    public function validateThreeWayMatch(string $poId, string $variantSku, int $orderedQty, int $acceptedQty, int $alreadyBilled, int $requestBillQty, ?int $poUnitPrice = null, ?int $receiptUnitPrice = null): array
     {
-        $violations  = [];
-        $billableQty = max(0, $acceptedQty - $alreadyBilled);
-        if ($acceptedQty <= 0)          $violations[] = "Receipt belum ada atau accepted qty = 0 untuk {$variantSku} pada {$poId}.";
-        if ($requestBillQty > $billableQty) $violations[] = "SR-06: Request bill qty {$requestBillQty} melebihi billable qty {$billableQty} (accepted {$acceptedQty} − already billed {$alreadyBilled}).";
-        if ($requestBillQty > $orderedQty)  $violations[] = "SR-05/SR-21: Request bill qty {$requestBillQty} melebihi ordered qty {$orderedQty}.";
-        return ['po_id' => $poId, 'variant_sku' => $variantSku, 'ordered_qty' => $orderedQty, 'accepted_qty' => $acceptedQty, 'already_billed' => $alreadyBilled, 'billable_qty' => $billableQty, 'request_bill_qty' => $requestBillQty, 'is_valid' => empty($violations), 'violations' => $violations];
+        $violations   = [];
+        $billableQty  = max(0, $acceptedQty - $alreadyBilled);
+        $priceMismatch = false;
+
+        // Check 1: Receipt existence
+        if ($acceptedQty <= 0) {
+            $violations[] = "Receipt belum ada atau accepted qty = 0 untuk {$variantSku} pada {$poId}.";
+        }
+        // Check 2: Qty ceiling (SR-06)
+        if ($requestBillQty > $billableQty) {
+            $violations[] = "SR-06: Request bill qty {$requestBillQty} melebihi billable qty {$billableQty} (accepted {$acceptedQty} − already billed {$alreadyBilled}).";
+        }
+        // Check 3: PO qty ceiling (SR-05/SR-21)
+        if ($requestBillQty > $orderedQty) {
+            $violations[] = "SR-05/SR-21: Request bill qty {$requestBillQty} melebihi ordered qty {$orderedQty}.";
+        }
+        // Check 4: Price mismatch (SR-21 — harga PO terkunci saat Confirmed)
+        if ($poUnitPrice !== null && $receiptUnitPrice !== null && $receiptUnitPrice !== $poUnitPrice) {
+            $priceMismatch = true;
+            $violations[]  = "SR-21 Price Mismatch: Unit price di receipt (Rp{$receiptUnitPrice}) berbeda dengan PO (Rp{$poUnitPrice}). Vendor Bill harus menggunakan harga PO yang terkunci.";
+        }
+
+        return [
+            'po_id'            => $poId,
+            'variant_sku'      => $variantSku,
+            'ordered_qty'      => $orderedQty,
+            'accepted_qty'     => $acceptedQty,
+            'already_billed'   => $alreadyBilled,
+            'billable_qty'     => $billableQty,
+            'request_bill_qty' => $requestBillQty,
+            'po_unit_price'    => $poUnitPrice,
+            'receipt_unit_price'=> $receiptUnitPrice,
+            'price_mismatch'   => $priceMismatch,
+            'is_valid'         => empty($violations),
+            'violations'       => $violations,
+        ];
     }
 
     // ── Internals ─────────────────────────────────────────────────────────
+
+    /**
+     * Assert jurnal seimbang sebelum posting (Debit = Kredit).
+     * Karena setiap entry adalah pasangan tunggal Dr/Cr, balance selalu terpenuhi
+     * selama amount > 0 dan account codes valid.
+     *
+     * @throws \RuntimeException jika amount <= 0 atau COA tidak valid
+     */
+    private function assertJournalBalance(string $debitAcc, string $creditAcc, int $amount): void
+    {
+        $validCoa = ['1000','1100','1300','1350','1400','1500','2000','2100','2200','3000','4000','4100','4200','5100','6100'];
+
+        if ($amount <= 0) {
+            throw new \RuntimeException("JOURNAL BALANCE ERROR: Amount jurnal harus > 0. Diterima: {$amount}. Entry Dr {$debitAcc} / Cr {$creditAcc} dibatalkan.");
+        }
+        if (!in_array($debitAcc, $validCoa)) {
+            throw new \RuntimeException("JOURNAL BALANCE ERROR: Debit account '{$debitAcc}' tidak valid. Harus dalam rentang COA 1000–6100.");
+        }
+        if (!in_array($creditAcc, $validCoa)) {
+            throw new \RuntimeException("JOURNAL BALANCE ERROR: Credit account '{$creditAcc}' tidak valid. Harus dalam rentang COA 1000–6100.");
+        }
+        if ($debitAcc === $creditAcc) {
+            throw new \RuntimeException("JOURNAL BALANCE ERROR: Debit account dan Credit account tidak boleh sama ({$debitAcc}).");
+        }
+    }
     private function postEntry(Invoice $invoice, string $journalType, string $reference, string $debitAcc, string $creditAcc, int $amount, string $description, string $postedBy): ?JournalEntry
     {
         return $this->postRawEntry($invoice, $journalType, $reference, $debitAcc, $creditAcc, $amount, $description, $postedBy);
@@ -232,6 +287,9 @@ class AccountingService
 
     private function postRawEntry(?Invoice $invoice, string $journalType, string $reference, string $debitAcc, string $creditAcc, int $amount, string $description, string $postedBy): JournalEntry
     {
+        // ── Debit == Credit balance assertion (wajib sebelum posting) ───────
+        $this->assertJournalBalance($debitAcc, $creditAcc, $amount);
+
         $idemKey = JournalEntry::buildIdempotencyKey($journalType, $reference, $debitAcc, $creditAcc, $amount);
         if (JournalEntry::alreadyPosted($idemKey)) return JournalEntry::where('idempotency_key', $idemKey)->first();
         return JournalEntry::create(['invoice_id' => $invoice?->id, 'journal_type' => $journalType, 'reference' => $reference, 'idempotency_key' => $idemKey, 'debit_account' => $debitAcc, 'credit_account' => $creditAcc, 'amount' => $amount, 'description' => $description, 'posted_by' => $postedBy, 'posted_at' => now(), 'is_reversed' => false]);

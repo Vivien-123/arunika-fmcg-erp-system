@@ -5,6 +5,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\AccountingController;
+use App\Http\Controllers\Sales\LeadController;
+use App\Http\Controllers\Sales\SalesOrderController;
 
 // ── Auth ─────────────────────────────────────────────────────────────────
 Route::get('/login',  [AuthController::class, 'showLogin'])->name('login');
@@ -35,6 +37,36 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reporting/audit/{docType}/{docId}', [AuditController::class, 'show'])
          ->name('reporting.audit.show')
          ->where('docId', '.*');
+
+    // ── CRM / Leads (M1 · F-04 · S-04 · T-07, T-08) ─────────────────────
+    Route::middleware('role:Sales,Owner')->prefix('crm')->name('crm.')->group(function () {
+        Route::get('/leads',                               [LeadController::class, 'index'])->name('leads.index');
+        Route::post('/leads',                              [LeadController::class, 'store'])->name('leads.store');
+        Route::get('/leads/{id}',                          [LeadController::class, 'show'])->name('leads.show');
+        Route::post('/leads/{id}/convert',                 [LeadController::class, 'convertToOpportunity'])->name('leads.convert');
+        Route::post('/leads/{id}/update-customer',         [LeadController::class, 'updateCustomer'])->name('leads.update-customer');
+    });
+
+    // ── Sales Orders (M1 · F-05, F-06, F-10, F-22 · S-05 · T-03,T-04,T-09,T-10) ──
+    Route::prefix('sales')->name('sales.')->group(function () {
+        // Read access: Sales + Owner
+        Route::middleware('role:Sales,Owner')->group(function () {
+            Route::get('/orders',                          [SalesOrderController::class, 'index'])->name('orders.index');
+            Route::get('/orders/create',                   [SalesOrderController::class, 'create'])->name('orders.create');
+            Route::post('/orders',                         [SalesOrderController::class, 'store'])->name('orders.store');
+            Route::get('/orders/{id}',                     [SalesOrderController::class, 'show'])->name('orders.show');
+            Route::post('/orders/{id}/confirm',            [SalesOrderController::class, 'confirm'])->name('orders.confirm');
+            Route::post('/orders/{id}/cancel',             [SalesOrderController::class, 'cancel'])->name('orders.cancel');
+            // API: credit exposure check (used by create-form JS)
+            Route::get('/api/credit/{customerId}',         [SalesOrderController::class, 'creditExposure'])->name('api.credit');
+        });
+
+        // Discount approval: Finance + Owner only (SR-08)
+        Route::middleware('role:Finance,Owner')->group(function () {
+            Route::post('/orders/{id}/approve-discount',   [SalesOrderController::class, 'approveDiscount'])->name('orders.approve-discount');
+            Route::post('/orders/{id}/reject-discount',    [SalesOrderController::class, 'rejectDiscount'])->name('orders.reject-discount');
+        });
+    });
 
     // ── Accounting & Invoicing (M4) ───────────────────────────────────────
     Route::middleware('role:Finance,Owner')->group(function () {

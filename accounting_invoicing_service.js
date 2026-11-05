@@ -89,8 +89,50 @@ function buildIdempotencyKey(journalType, reference, debitAcc, creditAcc, amount
 
 // ── Internal Journal Posting ──────────────────────────────────────────────────
 
+/**
+ * Assert bahwa setiap posting membentuk jurnal yang seimbang (Debit = Kredit).
+ * Karena setiap entry adalah pasangan tunggal Dr/Cr dengan amount yang sama,
+ * saldo selalu seimbang per-entry. Fungsi ini melakukan validasi eksplisit
+ * bahwa amount > 0 dan account codes valid sebelum menyimpan.
+ *
+ * @throws {Error} jika amount <= 0 atau account tidak dalam rentang COA yang valid
+ */
+function assertJournalBalance(debitAcc, creditAcc, amount) {
+  const VALID_COA = new Set(['1000','1100','1300','1350','1400','1500','2000','2100','2200','3000','4000','4100','4200','5100','6100']);
+
+  if (!amount || amount <= 0) {
+    throw new Error(
+      `JOURNAL BALANCE ERROR: Amount jurnal harus > 0. Diterima: ${amount}. ` +
+      `Entry Dr ${debitAcc} / Cr ${creditAcc} dibatalkan.`
+    );
+  }
+  if (!VALID_COA.has(String(debitAcc))) {
+    throw new Error(
+      `JOURNAL BALANCE ERROR: Debit account '${debitAcc}' tidak valid. ` +
+      `Harus dalam rentang COA 1000–6100.`
+    );
+  }
+  if (!VALID_COA.has(String(creditAcc))) {
+    throw new Error(
+      `JOURNAL BALANCE ERROR: Credit account '${creditAcc}' tidak valid. ` +
+      `Harus dalam rentang COA 1000–6100.`
+    );
+  }
+  if (debitAcc === creditAcc) {
+    throw new Error(
+      `JOURNAL BALANCE ERROR: Debit account dan Credit account tidak boleh sama (${debitAcc}). ` +
+      `Setiap jurnal harus memiliki akun yang berbeda.`
+    );
+  }
+  // Single Dr/Cr pair: Debit = Credit = amount → selalu balanced ✓
+  return true;
+}
+
 function postJournalEntry({ invoiceDocNumber, journalType, reference, debitAcc, creditAcc, amount, description, postedBy }) {
   if (!store.state.journal_entries) store.state.journal_entries = [];
+
+  // ── Debit == Credit balance assertion (wajib sebelum posting) ────────────
+  assertJournalBalance(debitAcc, creditAcc, amount);
 
   const idemKey = buildIdempotencyKey(journalType, reference, debitAcc, creditAcc, amount);
 
@@ -634,16 +676,34 @@ class AccountingInvoicingService {
 
   /**
    * Validasi 3-way match untuk Vendor Bill.
-   * @returns {{ isValid, violations, billableQty, ... }}
+   *
+   * Memeriksa 3 hal:
+   *   1. Receipt harus ada dan accepted_qty > 0 (SR-06)
+   *   2. Bill qty tidak boleh melebihi billable qty (SR-06)
+   *   3. Bill unit_price tidak boleh melebihi PO unit_price (SR-21 — harga terkunci saat Confirmed)
+   *
+   * @param {Object} params
+   * @param {string} params.poId
+   * @param {string} params.variantSku
+   * @param {number} params.orderedQty
+   * @param {number} params.acceptedQty
+   * @param {number} params.alreadyBilled
+   * @param {number} params.requestBillQty
+   * @param {number} [params.poUnitPrice]      harga di PO (terkunci saat Confirmed, SR-21)
+   * @param {number} [params.receiptUnitPrice] harga yang diterima di receipt
+   * @returns {{ isValid, violations, billableQty, priceMismatch, ... }}
    */
-  validateThreeWayMatch({ poId, variantSku, orderedQty, acceptedQty, alreadyBilled, requestBillQty }) {
+  validateThreeWayMatch({ poId, variantSku, orderedQty, acceptedQty, alreadyBilled, requestBillQty, poUnitPrice, receiptUnitPrice }) {
     const violations  = [];
     const billableQty = Math.max(0, acceptedQty - alreadyBilled);
+    let   priceMismatch = false;
 
+    // Check 1: Receipt existence
     if (acceptedQty <= 0) {
       violations.push(`Receipt belum ada atau accepted qty = 0 untuk ${variantSku} pada ${poId}.`);
     }
 
+    // Check 2: Quantity ceiling (SR-06)
     if (requestBillQty > billableQty) {
       violations.push(
         `SR-06: Request bill qty ${requestBillQty} melebihi billable qty ` +
@@ -651,11 +711,37 @@ class AccountingInvoicingService {
       );
     }
 
+    // Check 3: PO quantity ceiling (SR-05/SR-21)
     if (requestBillQty > orderedQty) {
       violations.push(`SR-05/SR-21: Request bill qty ${requestBillQty} melebihi ordered qty ${orderedQty} pada PO ${poId}.`);
     }
 
-    return { poId, variantSku, orderedQty, acceptedQty, alreadyBilled, billableQty, requestBillQty, isValid: violations.length === 0, violations };
+    // Check 4: Price mismatch detection (SR-21 — unit price terkunci saat PO Confirmed)
+    if (poUnitPrice !== undefined && receiptUnitPrice !== undefined) {
+      if (receiptUnitPrice !== poUnitPrice) {
+        priceMismatch = true;
+        violations.push(
+          `SR-21 Price Mismatch: Unit price di receipt (Rp${receiptUnitPrice}) berbeda ` +
+          `dengan unit price di PO ${poId} (Rp${poUnitPrice}). ` +
+          `Vendor Bill harus menggunakan harga PO yang sudah terkunci.`
+        );
+      }
+    }
+
+    return {
+      poId,
+      variantSku,
+      orderedQty,
+      acceptedQty,
+      alreadyBilled,
+      billableQty,
+      requestBillQty,
+      poUnitPrice      : poUnitPrice       ?? null,
+      receiptUnitPrice : receiptUnitPrice  ?? null,
+      priceMismatch,
+      isValid          : violations.length === 0,
+      violations,
+    };
   }
 
   // ── Journal Balance Check ─────────────────────────────────────────────────

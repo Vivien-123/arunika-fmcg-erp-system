@@ -77,6 +77,9 @@ class RunFmcgMasterSeed extends Command
         // bootstrapper owns those and recreating them causes conflicts.
         $tables = [
             'audit_logs',
+            'sales_order_lines',
+            'sales_orders',
+            'leads',
             'journal_entries',
             'invoice_items',
             'invoices',
@@ -850,6 +853,102 @@ class RunFmcgMasterSeed extends Command
 
         DB::table('audit_logs')->insert($logs);
         $this->line('   seeded   audit_logs (' . count($logs) . ' rows)');
+
+        // ── 3.15  Leads (CRM seed — F-04, T-07, T-08) ────────────────────
+        DB::table('leads')->insert([
+            [
+                'id'               => 'L00001',
+                'partner_id'       => 'C01',
+                'partner_name'     => 'PT Toko Makmur Sejahtera',
+                'stage'            => 'won',
+                'salesperson_id'   => 'sales_user',
+                'salesperson_name' => 'Dini Pratiwi',
+                'expected_revenue' => 1_000_000,
+                'notes'            => 'Sudah jadi pelanggan tetap.',
+                'created_by'       => 'sales_user',
+                'created_at'       => $now,
+                'updated_at'       => $now,
+            ],
+            [
+                'id'               => 'L00002',
+                'partner_id'       => 'C02',
+                'partner_name'     => 'CV Sinar Harapan',
+                'stage'            => 'qualified',
+                'salesperson_id'   => 'sales_user2',
+                'salesperson_name' => 'Farhan Saputra',
+                'expected_revenue' => 750_000,
+                'notes'            => null,
+                'created_by'       => 'sales_user2',
+                'created_at'       => $now,
+                'updated_at'       => $now,
+            ],
+            [
+                // Handout §4 existing document: L00003, C03, New, Rp500.000
+                'id'               => 'L00003',
+                'partner_id'       => 'C03',
+                'partner_name'     => 'UD Berkah Niaga',
+                'stage'            => 'new',
+                'salesperson_id'   => 'sales_user',
+                'salesperson_name' => 'Dini Pratiwi',
+                'expected_revenue' => 500_000,
+                'notes'            => 'Prospek baru Depok.',
+                'created_by'       => 'sales_user',
+                'created_at'       => $now,
+                'updated_at'       => $now,
+            ],
+        ]);
+        $this->line('   seeded   leads (3 rows — L00001, L00002, L00003)');
+
+        // ── 3.16  Sales Orders & Lines (seed — F-05, F-10, T-03, T-09) ───
+        // S00007: Handout §4 existing document — 8×P01 Confirmed, reserved, unbilled
+        DB::table('sales_orders')->insert([
+            [
+                'id'                       => 'S00007',
+                'customer_id'              => 'C01',
+                'customer_name'            => 'PT Toko Makmur Sejahtera',
+                'status'                   => 'confirmed',
+                'discount_approval_status' => 'not_required',
+                'discount_approved_by'     => null,
+                'discount_approved_at'     => null,
+                'untaxed_amount'           => 200_000,   // 8 × 25.000
+                'tax_amount'               => 22_000,    // floor(200000×0.11+0.5)
+                'gross_amount'             => 222_000,   // 200.000 + 22.000
+                'payment_terms'            => '14 hari',
+                'order_date'               => '2026-10-20',
+                'delivery_promise_date'    => '2026-10-23',
+                'created_by'               => 'sales_user',
+                'confirmed_by'             => 'sales_user',
+                'confirmed_at'             => $now,
+                'lead_id'                  => 'L00001',
+                'created_at'               => $now,
+                'updated_at'               => $now,
+            ],
+        ]);
+
+        DB::table('sales_order_lines')->insert([
+            [
+                'sales_order_id'   => 'S00007',
+                'product_id'       => 'P01',
+                'variant_sku'      => 'CLN-DTR-800-LMN',
+                'product_name'     => 'Detergen Cair Lemon',
+                'unit'             => 'pouch',
+                'quantity'         => 8,
+                'unit_price'       => 25_000,
+                'discount_percent' => 0.00,
+                'is_locked'        => true,            // confirmed → locked (SR-12)
+                'net_amount'       => 200_000,
+                'tax_amount'       => 22_000,
+                'gross_amount'     => 222_000,
+                'delivered_qty'    => 0,               // not yet delivered
+                'invoiced_qty'     => 0,
+                'reserved_qty'     => 8,               // SR-22: 8 units reserved at WH-JKT
+                'source_location'  => 'WH-JKT',
+                'created_at'       => $now,
+                'updated_at'       => $now,
+            ],
+        ]);
+        $this->line('   seeded   sales_orders (S00007 — Confirmed, 8×P01, gross Rp222.000)');
+        $this->line('   seeded   sales_order_lines (1 row — S00007 line)');
     }
 
     // ────────────────────────────────────────────────────────────────────────
