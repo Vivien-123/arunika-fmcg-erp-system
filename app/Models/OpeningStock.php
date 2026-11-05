@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class OpeningStock extends Model
 {
+    protected $table      = 'opening_stock';
     protected $primaryKey = 'variant_sku'; // unique per SKU at company level
     protected $keyType    = 'string';
     public $incrementing  = false;
