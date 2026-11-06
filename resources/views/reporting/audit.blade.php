@@ -3,8 +3,10 @@
 @php
     $currentApp  = 'Reporting';
     $sidebarMenu = [
-        ['label' => 'Audit Log', 'url' => route('reporting.audit'), 'icon' => '📋'],
-        ['label' => 'Beranda',   'url' => route('home'),            'icon' => '🏠'],
+        ['label' => 'Dashboard',     'url' => route('reporting.dashboard'),    'icon' => '📈'],
+        ['label' => 'Audit Log',     'url' => route('reporting.audit'),        'icon' => '📋'],
+        ['label' => 'Test Results',  'url' => route('reporting.test-results'), 'icon' => '✅'],
+        ['label' => 'Testing T1-36', 'url' => route('reporting.testing'),      'icon' => '🧪'],
     ];
 
     $actionColors = [

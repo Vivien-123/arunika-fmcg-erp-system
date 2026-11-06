@@ -120,7 +120,7 @@
                 $menus = auth()->user()->allowedMenus();
                 $menuRoutes = [
                     'Sales'=>route('sales.orders.index'),'CRM'=>route('crm.leads.index'),
-                    'Purchase'=>'#','Inventory'=>'#',
+                    'Purchase'=>'#','Inventory'=>route('inventory.stock'),
                     'Accounting'=>route('accounting.invoices.index'),'Invoicing'=>route('accounting.invoices.index'),
                     'Employees'=>route('employees.index'),
                     'Reporting'=>route('reporting.dashboard'),'Wireframes'=>route('wireframes'),

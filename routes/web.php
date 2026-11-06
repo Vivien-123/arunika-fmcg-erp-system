@@ -25,6 +25,7 @@ Route::middleware(['auth'])->group(function () {
 
     // ── Employees (M3) ────────────────────────────────────────────────
     Route::get('/employees', [EmployeeController::class, 'index'])->name('employees.index');
+    Route::get('/employees/defense', fn() => view('employees.defense'))->name('employees.defense');
     Route::get('/employees/{id}', [EmployeeController::class, 'show'])->name('employees.show');
     Route::post('/employees/{id}/toggle-status', [EmployeeController::class, 'toggleStatus'])
          ->name('employees.toggleStatus')->middleware('role:HR,Owner');
@@ -37,6 +38,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reporting/audit/{docType}/{docId}', [AuditController::class, 'show'])
          ->name('reporting.audit.show')
          ->where('docId', '.*');
+
+    // ── M3-W4-01: Test Results T-01, T-02, T-27–T-30 ────────────────────
+    Route::get('/reporting/test-results', fn() => view('reporting.test-results-m3'))
+         ->name('reporting.test-results');
 
     // ── Operational Dashboard (F-20, S-17, SR-19) ──────────────────────
     Route::get('/reporting/dashboard', function () {
