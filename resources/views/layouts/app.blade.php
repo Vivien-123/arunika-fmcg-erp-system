@@ -120,7 +120,7 @@
                 $menus = auth()->user()->allowedMenus();
                 $menuRoutes = [
                     'Sales'=>route('sales.orders.index'),'CRM'=>route('crm.leads.index'),
-                    'Purchase'=>'#','Inventory'=>route('inventory.stock'),
+                    'Purchase'=>route('purchase.orders.index'),'Inventory'=>route('inventory.stock'),
                     'Accounting'=>route('accounting.invoices.index'),'Invoicing'=>route('accounting.invoices.index'),
                     'Employees'=>route('employees.index'),
                     'Reporting'=>route('reporting.dashboard'),'Wireframes'=>route('wireframes'),
@@ -154,15 +154,23 @@
                     ['label'=>'Sales Orders','url'=>route('sales.orders.index'),'icon'=>'🛒'],
                 ],
             ],
+            'Purchase' => [
+                'roles' => ['Purchase','Owner'],
+                'items' => [
+                    ['label'=>'Purchase Orders','url'=>route('purchase.orders.index'),'icon'=>'📦'],
+                    ['label'=>'Buat RFQ','url'=>route('purchase.orders.create'),'icon'=>'📝'],
+                    ['label'=>'Goods Receipts','url'=>route('inventory.receipts.index'),'icon'=>'🚚'],
+                ],
+            ],
             'Inventory & Stock' => [
                 'roles' => ['Purchase','Warehouse','Owner'],
                 'items' => [
                     ['label'=>'Stock Overview','url'=>route('inventory.stock'),'icon'=>'📦'],
                     ['label'=>'Products & SKU','url'=>'#','icon'=>'🏭'],
                     ['label'=>'FEFO Lots','url'=>'#','icon'=>'🏷️'],
-                    ['label'=>'Internal Transfer','url'=>'#','icon'=>'🔁'],
-                    ['label'=>'Delivery Orders','url'=>'#','icon'=>'📤'],
-                    ['label'=>'Receipt & Quality','url'=>'#','icon'=>'🚚'],
+                    ['label'=>'Internal Transfer','url'=>route('inventory.transfer'),'icon'=>'🔁'],
+                    ['label'=>'Delivery Orders','url'=>route('inventory.deliveries.index'),'icon'=>'📤'],
+                    ['label'=>'Receipt & Quality','url'=>route('inventory.receipts.index'),'icon'=>'🚚'],
                 ],
             ],
             'Accounting & Invoicing' => [

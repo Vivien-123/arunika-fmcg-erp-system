@@ -77,6 +77,13 @@ class RunFmcgMasterSeed extends Command
         // bootstrapper owns those and recreating them causes conflicts.
         $tables = [
             'audit_logs',
+            'delivery_lines',
+            'deliveries',
+            'receipt_lines',
+            'receipts',
+            'purchase_order_lines',
+            'purchase_orders',
+            'stock_moves',
             'sales_order_lines',
             'sales_orders',
             'leads',
@@ -468,6 +475,143 @@ class RunFmcgMasterSeed extends Command
             $t->timestamps();
         });
         $this->line('   created  sales_order_lines');
+
+        // ── purchase_orders ──────────────────────────────────────────────
+        Schema::create('purchase_orders', function (Blueprint $t) {
+            $t->string('id')->primary();           // PO00001 ...
+            $t->string('vendor_id');
+            $t->foreign('vendor_id')->references('id')->on('contacts_vendors');
+            $t->string('vendor_name');
+            $t->string('status')->default('rfq'); // rfq | confirmed | done | cancelled
+            $t->boolean('is_locked')->default(false); // SR-21: true after confirmed
+            $t->unsignedBigInteger('net_amount')->default(0);
+            $t->unsignedBigInteger('tax_amount')->default(0);
+            $t->unsignedBigInteger('gross_amount')->default(0);
+            $t->string('payment_terms')->nullable();
+            $t->date('order_date')->nullable();
+            $t->date('expected_arrival')->nullable();
+            $t->string('created_by')->nullable();
+            $t->string('confirmed_by')->nullable();
+            $t->timestamp('confirmed_at')->nullable();
+            $t->timestamps();
+        });
+        $this->line('   created  purchase_orders');
+
+        // ── purchase_order_lines ──────────────────────────────────────────
+        Schema::create('purchase_order_lines', function (Blueprint $t) {
+            $t->id();
+            $t->string('purchase_order_id');
+            $t->foreign('purchase_order_id')->references('id')->on('purchase_orders')->cascadeOnDelete();
+            $t->string('product_id');
+            $t->string('variant_sku');
+            $t->string('product_name');
+            $t->string('unit');
+            $t->unsignedInteger('quantity');
+            $t->unsignedBigInteger('unit_price');     // locked on confirm (SR-21)
+            $t->boolean('is_locked')->default(false); // SR-21: true after PO confirmed
+            $t->unsignedBigInteger('net_amount');
+            $t->unsignedBigInteger('tax_amount');
+            $t->unsignedBigInteger('gross_amount');
+            $t->unsignedInteger('received_qty')->default(0);
+            $t->unsignedInteger('accepted_qty')->default(0);
+            $t->unsignedInteger('rejected_qty')->default(0);
+            $t->unsignedInteger('billed_qty')->default(0);
+            $t->timestamps();
+        });
+        $this->line('   created  purchase_order_lines');
+
+        // ── receipts (Goods Receipt) ──────────────────────────────────────
+        Schema::create('receipts', function (Blueprint $t) {
+            $t->string('id')->primary();           // GR00001 ...
+            $t->string('purchase_order_id');
+            $t->foreign('purchase_order_id')->references('id')->on('purchase_orders');
+            $t->string('vendor_id');
+            $t->string('status')->default('draft'); // draft | done | cancelled
+            $t->string('destination_location')->default('WH-JKT');
+            $t->string('validator_employee_id')->nullable(); // SR-17
+            $t->string('validator_user')->nullable();
+            $t->timestamp('validated_at')->nullable();
+            $t->string('created_by')->nullable();
+            $t->boolean('is_posted')->default(false); // SR-16 idempotency
+            $t->string('idempotency_key')->unique()->nullable();
+            $t->timestamps();
+        });
+        $this->line('   created  receipts');
+
+        // ── receipt_lines ─────────────────────────────────────────────────
+        Schema::create('receipt_lines', function (Blueprint $t) {
+            $t->id();
+            $t->string('receipt_id');
+            $t->foreign('receipt_id')->references('id')->on('receipts')->cascadeOnDelete();
+            $t->string('purchase_order_line_id')->nullable();
+            $t->string('product_id');
+            $t->string('variant_sku');
+            $t->string('product_name');
+            $t->string('unit');
+            $t->unsignedInteger('ordered_qty')->default(0);
+            $t->unsignedInteger('received_qty')->default(0);
+            $t->unsignedInteger('accepted_qty')->default(0);  // SR-06: only this goes to stock
+            $t->unsignedInteger('rejected_qty')->default(0);
+            $t->string('lot_id')->nullable();                  // for lot-tracked SKUs
+            $t->date('expiry_date')->nullable();
+            $t->timestamps();
+        });
+        $this->line('   created  receipt_lines');
+
+        // ── deliveries (Delivery Order) ───────────────────────────────────
+        Schema::create('deliveries', function (Blueprint $t) {
+            $t->string('id')->primary();            // DO00001 ...
+            $t->string('sales_order_id');
+            $t->foreign('sales_order_id')->references('id')->on('sales_orders');
+            $t->string('customer_id');
+            $t->string('status')->default('draft'); // draft | ready | done | cancelled
+            $t->string('source_location')->default('WH-JKT');
+            $t->string('validator_employee_id')->nullable(); // SR-17
+            $t->string('validator_user')->nullable();
+            $t->timestamp('validated_at')->nullable();
+            $t->string('created_by')->nullable();
+            $t->boolean('is_posted')->default(false); // SR-16 idempotency
+            $t->string('idempotency_key')->unique()->nullable();
+            $t->timestamps();
+        });
+        $this->line('   created  deliveries');
+
+        // ── delivery_lines ────────────────────────────────────────────────
+        Schema::create('delivery_lines', function (Blueprint $t) {
+            $t->id();
+            $t->string('delivery_id');
+            $t->foreign('delivery_id')->references('id')->on('deliveries')->cascadeOnDelete();
+            $t->string('sales_order_line_id')->nullable();
+            $t->string('product_id');
+            $t->string('variant_sku');
+            $t->string('product_name');
+            $t->string('unit');
+            $t->unsignedInteger('demand_qty');
+            $t->unsignedInteger('done_qty')->default(0);
+            $t->unsignedInteger('backorder_qty')->default(0);
+            $t->string('lot_id')->nullable();         // SR-09: FEFO lot picked
+            $t->timestamps();
+        });
+        $this->line('   created  delivery_lines');
+
+        // ── stock_moves (perpetual ledger) ────────────────────────────────
+        Schema::create('stock_moves', function (Blueprint $t) {
+            $t->id();
+            $t->string('reference');               // DO00001, GR00001, TRANSFER-001 ...
+            $t->string('move_type');               // delivery | receipt | transfer | return | adjustment
+            $t->string('variant_sku');
+            $t->string('from_location')->nullable(); // null for receipts
+            $t->string('to_location')->nullable();   // null for deliveries
+            $t->unsignedInteger('qty');
+            $t->unsignedBigInteger('unit_cost');   // standard_cost at time of move (SR-03)
+            $t->unsignedBigInteger('total_value'); // qty × unit_cost
+            $t->string('lot_id')->nullable();      // FEFO: which lot was moved
+            $t->string('actor_user');
+            $t->string('actor_employee')->nullable();
+            $t->string('idempotency_key')->unique(); // SR-16: prevent double-posting
+            $t->timestamps();
+        });
+        $this->line('   created  stock_moves');
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -1015,6 +1159,45 @@ class RunFmcgMasterSeed extends Command
         ]);
         $this->line('   seeded   sales_orders (S00007 — Confirmed, 8×P01, gross Rp222.000)');
         $this->line('   seeded   sales_order_lines (1 row — S00007 line)');
+
+        // ── 3.17  Purchase Order PO00007 (existing document from handout §4) ──
+        DB::table('purchase_orders')->insert([[
+            'id'           => 'PO00007',
+            'vendor_id'    => 'V04',
+            'vendor_name'  => 'PT Personal Sentosa',
+            'status'       => 'confirmed',
+            'is_locked'    => 1,
+            'net_amount'   => 640_000,
+            'tax_amount'   => 70_400,
+            'gross_amount' => 710_400,
+            'payment_terms'=> '14 hari',
+            'order_date'   => '2026-10-20',
+            'expected_arrival' => null,
+            'created_by'   => 'purchase_user',
+            'confirmed_by' => 'purchase_user',
+            'confirmed_at' => '2026-10-20 09:00:00',
+            'created_at'   => $now, 'updated_at' => $now,
+        ]]);
+        DB::table('purchase_order_lines')->insert([[
+            'purchase_order_id' => 'PO00007',
+            'product_id'        => 'P05',
+            'variant_sku'       => 'PRS-SHM-B24-MNT',
+            'product_name'      => 'Sampo Sachet Dus Mentol',
+            'unit'              => 'dus',
+            'quantity'          => 20,
+            'unit_price'        => 32_000,
+            'is_locked'         => 1,
+            'net_amount'        => 640_000,
+            'tax_amount'        => 70_400,
+            'gross_amount'      => 710_400,
+            'received_qty'      => 0,
+            'accepted_qty'      => 0,
+            'rejected_qty'      => 0,
+            'billed_qty'        => 0,
+            'created_at'        => $now, 'updated_at' => $now,
+        ]]);
+        $this->line('   seeded   purchase_orders (1 row — PO00007 Confirmed V04 20×P05)');
+        $this->line('   seeded   purchase_order_lines (1 row)');
     }
 
     // ────────────────────────────────────────────────────────────────────────
