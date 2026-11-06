@@ -10,3 +10,18 @@ storage/framework/views/
 storage/logs/
 database/database.sqlite
 database/database.sqlite-journal
+
+# Test output / temp files
+seed_out.txt
+seed_err.txt
+seed_output.txt
+seed_out_new.txt
+seed_run_test.txt
+seed_w2_test.txt
+routes_err.txt
+routes_out.txt
+check_tables_out.txt
+*.tmp
+
+# Retired seeders
+database/seeders/FmcgSeeder.php.bak
