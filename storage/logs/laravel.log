@@ -4988,3 +4988,37 @@
 #29 C:/arunika-fmcg-erp-system/artisan(26): Illuminate/Foundation/Console/Kernel->handle(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
 #30 {main}
 "} 
+[2026-11-06 23:29:53] local.ERROR: Declaration of App\Http\Controllers\Inventory\DeliveryController::validate(Illuminate\Http\Request $request, string $id) must be compatible with App\Http\Controllers\Controller::validate(Illuminate\Http\Request $request, array $rules, array $messages = [], array $attributes = []) {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Declaration of App\\Http\\Controllers\\Inventory\\DeliveryController::validate(Illuminate\\Http\\Request $request, string $id) must be compatible with App\\Http\\Controllers\\Controller::validate(Illuminate\\Http\\Request $request, array $rules, array $messages = [], array $attributes = []) at D:/arunika-fmcg-erp-system/app/Http/Controllers/Inventory/DeliveryController.php:78)
+[stacktrace]
+#0 {main}
+"} 
+[2026-11-07 00:05:30] local.ERROR: Declaration of App\Http\Controllers\Inventory\DeliveryController::validate(Illuminate\Http\Request $request, string $id) must be compatible with App\Http\Controllers\Controller::validate(Illuminate\Http\Request $request, array $rules, array $messages = [], array $attributes = []) {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Declaration of App\\Http\\Controllers\\Inventory\\DeliveryController::validate(Illuminate\\Http\\Request $request, string $id) must be compatible with App\\Http\\Controllers\\Controller::validate(Illuminate\\Http\\Request $request, array $rules, array $messages = [], array $attributes = []) at D:/arunika-fmcg-erp-system/app/Http/Controllers/Inventory/DeliveryController.php:78)
+[stacktrace]
+#0 {main}
+"} 
+[2026-11-07 00:05:31] local.ERROR: Declaration of App\Http\Controllers\Inventory\DeliveryController::validate(Illuminate\Http\Request $request, string $id) must be compatible with App\Http\Controllers\Controller::validate(Illuminate\Http\Request $request, array $rules, array $messages = [], array $attributes = []) {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Declaration of App\\Http\\Controllers\\Inventory\\DeliveryController::validate(Illuminate\\Http\\Request $request, string $id) must be compatible with App\\Http\\Controllers\\Controller::validate(Illuminate\\Http\\Request $request, array $rules, array $messages = [], array $attributes = []) at D:/arunika-fmcg-erp-system/app/Http/Controllers/Inventory/DeliveryController.php:78)
+[stacktrace]
+#0 {main}
+"} 
+[2026-11-07 00:27:05] local.ERROR: syntax error, unexpected token "-", expecting "->" or "?->" or "{" or "[" {"exception":"[object] (ParseError(code: 0): syntax error, unexpected token \"-\", expecting \"->\" or \"?->\" or \"{\" or \"[\" at D:/arunika-fmcg-erp-system/app/Console/Commands/RunM2W2CheckpointTests.php:458)
+[stacktrace]
+#0 D:/arunika-fmcg-erp-system/vendor/composer/ClassLoader.php(427): Composer/Autoload/{closure}('D://arunika-fmcg...')
+#1 [internal function]: Composer/Autoload/ClassLoader->loadClass('App//Console//Com...')
+#2 D:/arunika-fmcg-erp-system/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(346): is_subclass_of('App//Console//Com...', 'Illuminate//Cons...')
+#3 D:/arunika-fmcg-erp-system/app/Console/Kernel.php(23): Illuminate/Foundation/Console/Kernel->load(Array)
+#4 D:/arunika-fmcg-erp-system/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(453): App/Console/Kernel->commands()
+#5 D:/arunika-fmcg-erp-system/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(199): Illuminate/Foundation/Console/Kernel->bootstrap()
+#6 D:/arunika-fmcg-erp-system/artisan(24): Illuminate/Foundation/Console/Kernel->handle(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#7 {main}
+"} 
+[2026-11-07 00:27:06] local.ERROR: syntax error, unexpected token "-", expecting "->" or "?->" or "{" or "[" {"exception":"[object] (ParseError(code: 0): syntax error, unexpected token \"-\", expecting \"->\" or \"?->\" or \"{\" or \"[\" at D:/arunika-fmcg-erp-system/app/Console/Commands/RunM2W2CheckpointTests.php:458)
+[stacktrace]
+#0 D:/arunika-fmcg-erp-system/vendor/composer/ClassLoader.php(427): Composer/Autoload/{closure}('D://arunika-fmcg...')
+#1 [internal function]: Composer/Autoload/ClassLoader->loadClass('App//Console//Com...')
+#2 D:/arunika-fmcg-erp-system/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(346): is_subclass_of('App//Console//Com...', 'Illuminate//Cons...')
+#3 D:/arunika-fmcg-erp-system/app/Console/Kernel.php(23): Illuminate/Foundation/Console/Kernel->load(Array)
+#4 D:/arunika-fmcg-erp-system/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(453): App/Console/Kernel->commands()
+#5 D:/arunika-fmcg-erp-system/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(199): Illuminate/Foundation/Console/Kernel->bootstrap()
+#6 D:/arunika-fmcg-erp-system/artisan(24): Illuminate/Foundation/Console/Kernel->handle(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#7 {main}
+"} 
