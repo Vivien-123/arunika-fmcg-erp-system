@@ -427,3 +427,77 @@ flowchart TD
 ```
 
 ---
+
+
+---
+
+## 12. M2 Week 4 — Final Regression Status (M2-W4-01)
+
+**Tanggal Validasi:** 5 November 2026 | **Dijalankan oleh:** Vivien (M2 — Lead AI Developer)
+
+### Cara Menjalankan Full Regression
+
+```bash
+# 1. Reset ke seed baseline
+php artisan db:master-seed
+
+# 2. Verifikasi checksum baseline (34/34)
+php artisan fmcg:verify-checksum
+
+# 3. Full T-01 → T-36 regression (36 tes, 130 assertions)
+php artisan m2:regression
+
+# 4. Week 2 checkpoint saja (10 tes, 90 assertions)
+php artisan m2:w2-checkpoint
+
+# 5. Week 3 cross-module integration (10 tes, 52 assertions)
+php artisan m2:w3-checkpoint
+```
+
+### Hasil Pengujian Final
+
+| Suite | Command | Tests | Assertions | Status |
+|-------|---------|-------|-----------|--------|
+| Seed Baseline Checksum | `fmcg:verify-checksum` | — | 34/34 | ✅ PASS |
+| Week 2 Checkpoint | `m2:w2-checkpoint` | 10/10 | 90/90 | ✅ PASS |
+| Week 3 Integration | `m2:w3-checkpoint` | 10/10 | 52/52 | ✅ PASS |
+| **Full Regression T-01→T-36** | **`m2:regression`** | **36/36** | **130/130** | ✅ **PASS** |
+
+### Cakupan Business Rules Divalidasi
+
+| SR | Aturan | Tes yang Membuktikan |
+|----|--------|----------------------|
+| SR-02 | Invoice hanya qty Done di DO | T-19, T-20 |
+| SR-03 | COGS perpetual standard cost | T-11, T-25 |
+| SR-04 | Anti-negative stock | T-11, T-12 |
+| SR-06 | Vendor Bill ≤ accepted_qty (3-way match) | T-17, T-21, T-22 |
+| SR-07/08 | Diskon >10% → Finance approval | T-10 |
+| SR-09 | FEFO lot — LOT-TEA-01 first, expired blocked | T-06 |
+| SR-11 | Credit limit hard block | T-03, T-04 |
+| SR-12 | Harga/diskon locked setelah Confirmed | T-09, T-10 |
+| SR-13 | Credit Note ≤ invoiced qty | T-31, T-32 |
+| SR-14 | Internal transfer — company_total tidak berubah | T-13 |
+| SR-15 | Data privat karyawan — HR only | T-28 |
+| SR-16 | Posting idempotent (no duplicate journals) | T-19, T-26, T-36 |
+| SR-17/18 | Sign-off wajib Employee Aktif Warehouse | T-17, T-18, T-29, T-30 |
+| SR-19 | Dashboard KPI dari Posted only | T-33, T-34 |
+| SR-20 | Overpayment ditolak | T-24 |
+| SR-21 | PO unit_price terkunci setelah Confirmed | T-15, T-16 |
+| SR-22 | Available = On Hand − Reserved | T-09, T-13, T-14 |
+
+### Integrasi Cross-Module (M2-W3-01)
+
+- **DO → Customer Invoice**: Tombol otomatis di Delivery Done view, billable_qty = delivered − invoiced (SR-02)
+- **GR → Vendor Bill**: Tombol otomatis di Receipt Done view, 3-way match preview (SR-06)
+- **`invoiced_qty`**: Diupdate otomatis di `sales_order_lines` saat Invoice diposting
+- **`billed_qty`**: Diupdate otomatis di `purchase_order_lines` saat Vendor Bill diposting
+
+### Deployment Notes
+
+```
+# nixpacks.toml: seed dijalankan via migrate:fresh --seed on start
+# Procfile: php artisan serve --host=0.0.0.0 --port=$PORT
+# DatabaseSeeder.php: Artisan::call('db:master-seed') — single source of truth
+```
+
+Seluruh credential test tersedia di Section 8 README. Password: `Demo2026!`
