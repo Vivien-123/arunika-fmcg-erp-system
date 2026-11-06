@@ -193,6 +193,66 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
+    // ── Purchase Orders (M2 · F-11 · S-08 · T-05, T-15, T-16) ───────────
+    Route::prefix('purchase')->name('purchase.')->middleware('role:Purchase,Owner,Finance')->group(function () {
+        Route::get('/orders', [\App\Http\Controllers\Purchase\PurchaseOrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/create', [\App\Http\Controllers\Purchase\PurchaseOrderController::class, 'create'])->name('orders.create');
+        Route::post('/orders', [\App\Http\Controllers\Purchase\PurchaseOrderController::class, 'store'])->name('orders.store');
+        Route::get('/orders/{id}', [\App\Http\Controllers\Purchase\PurchaseOrderController::class, 'show'])->name('orders.show');
+        Route::post('/orders/{id}/confirm', [\App\Http\Controllers\Purchase\PurchaseOrderController::class, 'confirm'])->name('orders.confirm');
+        Route::post('/orders/{id}/cancel', [\App\Http\Controllers\Purchase\PurchaseOrderController::class, 'cancel'])->name('orders.cancel');
+        Route::get('/orders/{id}/receipt/create', [\App\Http\Controllers\Purchase\PurchaseOrderController::class, 'createReceipt'])->name('orders.receipt.create');
+    });
+
+    // ── Deliveries & Receipts (M2 · F-07/F-08/F-17 · S-06 · T-11–T-18) ─
+    Route::prefix('inventory')->name('inventory.')->group(function () {
+        // Delivery Orders — Warehouse, Owner
+        Route::middleware('role:Warehouse,Owner')->group(function () {
+            Route::get('/deliveries', [\App\Http\Controllers\Inventory\DeliveryController::class, 'index'])->name('deliveries.index');
+            Route::get('/deliveries/create', [\App\Http\Controllers\Inventory\DeliveryController::class, 'create'])->name('deliveries.create');
+            Route::post('/deliveries', [\App\Http\Controllers\Inventory\DeliveryController::class, 'store'])->name('deliveries.store');
+            Route::get('/deliveries/{id}', [\App\Http\Controllers\Inventory\DeliveryController::class, 'show'])->name('deliveries.show');
+            Route::post('/deliveries/{id}/validate', [\App\Http\Controllers\Inventory\DeliveryController::class, 'validateDelivery'])->name('deliveries.validate');
+        });
+
+        // Goods Receipts — Warehouse, Purchase, Owner
+        Route::middleware('role:Warehouse,Purchase,Owner')->group(function () {
+            Route::get('/receipts', [\App\Http\Controllers\Inventory\ReceiptController::class, 'index'])->name('receipts.index');
+            Route::post('/receipts', [\App\Http\Controllers\Inventory\ReceiptController::class, 'store'])->name('receipts.store');
+            Route::get('/receipts/{id}', [\App\Http\Controllers\Inventory\ReceiptController::class, 'show'])->name('receipts.show');
+            Route::post('/receipts/{id}/validate', [\App\Http\Controllers\Inventory\ReceiptController::class, 'validateReceipt'])->name('receipts.validate');
+        });
+
+        // Internal Transfer (F-17, SR-14) — Warehouse, Owner
+        Route::middleware('role:Warehouse,Owner')->group(function () {
+            Route::get('/transfer', function () {
+                $stocks = \App\Models\OpeningStock::with('product')->orderBy('variant_sku')->get();
+                return view('inventory.transfer', compact('stocks'));
+            })->name('transfer');
+            Route::post('/transfer', function (\Illuminate\Http\Request $request) {
+                $request->validate([
+                    'variant_sku'   => 'required|exists:products,variant_sku',
+                    'from_location' => 'required|in:WH-JKT,HUB-BDG',
+                    'to_location'   => 'required|in:WH-JKT,HUB-BDG|different:from_location',
+                    'qty'           => 'required|integer|min:1',
+                ]);
+                try {
+                    app(\App\Services\InventoryService::class)->transferStock(
+                        $request->from_location,
+                        $request->to_location,
+                        $request->variant_sku,
+                        (int) $request->qty,
+                        auth()->user()->username ?? auth()->user()->name
+                    );
+                    return redirect()->route('inventory.stock')
+                        ->with('success', "Transfer {$request->qty}×{$request->variant_sku} dari {$request->from_location} ke {$request->to_location} berhasil (SR-14).");
+                } catch (\Exception $e) {
+                    return redirect()->back()->with('error', $e->getMessage());
+                }
+            })->name('transfer.store');
+        });
+    });
+
     // ── Accounting & Invoicing (M4) ───────────────────────────────────────
     Route::middleware('role:Finance,Owner')->group(function () {
         // Customer Invoices (F-09, S-10)
