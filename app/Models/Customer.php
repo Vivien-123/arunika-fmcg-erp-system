@@ -38,6 +38,12 @@ class Customer extends Model
                     ->where('partner_type', 'customer');
     }
 
+    /** Sales Orders for this customer */
+    public function salesOrders()
+    {
+        return $this->hasMany(SalesOrder::class, 'customer_id', 'id');
+    }
+
     // ── Business logic ─────────────────────────────────────────────────────
 
     /** Remaining credit available = limit − current open AR */

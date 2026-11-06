@@ -45,26 +45,44 @@ Route::middleware(['auth'])->group(function () {
 
     // ── Operational Dashboard (F-20, S-17, SR-19) ──────────────────────
     Route::get('/reporting/dashboard', function () {
-        $stocks = \App\Models\OpeningStock::with('product')->orderBy('variant_sku')->get();
+        $stocks      = \App\Models\OpeningStock::with('product')->orderBy('variant_sku')->get();
         $totalOnHand = $stocks->sum('company_total');
-        $stockValue = $stocks->sum('standard_value');
-        $whJkt = $stocks->sum('wh_jkt_on_hand');
-        $hubBdg = $stocks->sum('hub_bdg_on_hand');
+        $stockValue  = $stocks->sum('standard_value');
+        $whJkt       = $stocks->sum('wh_jkt_on_hand');
+        $hubBdg      = $stocks->sum('hub_bdg_on_hand');
+        $totalReserved = $stocks->sum('reserved');
 
-        // AR, AP, Bank from journal entries
-        $ar   = \App\Models\JournalEntry::where('debit_account', '1100')->sum('amount') - \App\Models\JournalEntry::where('credit_account', '1100')->sum('amount');
-        $ap   = \App\Models\JournalEntry::where('credit_account', '2000')->sum('amount') - \App\Models\JournalEntry::where('debit_account', '2000')->sum('amount');
-        $bank = \App\Models\JournalEntry::where('debit_account', '1000')->sum('amount') - \App\Models\JournalEntry::where('credit_account', '1000')->sum('amount');
+        // SR-19: AR/AP/Bank only from POSTED journal entries (not draft)
+        $ar   = \App\Models\JournalEntry::where('debit_account',  '1100')->sum('amount')
+              - \App\Models\JournalEntry::where('credit_account', '1100')->sum('amount');
+        $ap   = \App\Models\JournalEntry::where('credit_account', '2000')->sum('amount')
+              - \App\Models\JournalEntry::where('debit_account',  '2000')->sum('amount');
+        $bank = \App\Models\JournalEntry::where('debit_account',  '1000')->sum('amount')
+              - \App\Models\JournalEntry::where('credit_account', '1000')->sum('amount');
 
-        // Credit exposure per customer with open AR
-        $customers = \App\Models\Customer::where('open_ar', '>', 0)->get();
+        // SR-19: Open Orders — only Confirmed SO and PO (not draft)
+        $openSOs = \App\Models\SalesOrder::whereIn('status', ['confirmed', 'done'])
+            ->selectRaw('count(*) as cnt, sum(gross_amount) as total')->first();
+        $openPOs = \App\Models\PurchaseOrder::whereIn('status', ['confirmed'])
+            ->selectRaw('count(*) as cnt, sum(gross_amount) as total')->first();
+
+        // SR-19: Draft invoices must NOT inflate AR (T-34 check)
+        $draftInvoiceCount = \App\Models\Invoice::where('status', 'draft')->count();
+        $draftInvoiceValue = \App\Models\Invoice::where('status', 'draft')->sum('gross_amount');
 
         // Recent audit logs
         $recentLogs = \App\Models\AuditLog::orderByDesc('acted_at')->limit(6)->get();
 
+        // Recent deliveries and receipts
+        $recentDeliveries = \App\Models\Delivery::orderByDesc('created_at')->limit(5)->get();
+        $recentReceipts   = \App\Models\Receipt::orderByDesc('created_at')->limit(5)->get();
+
         return view('reporting.dashboard', compact(
-            'stocks', 'totalOnHand', 'stockValue', 'whJkt', 'hubBdg',
-            'ar', 'ap', 'bank', 'customers', 'recentLogs'
+            'stocks', 'totalOnHand', 'stockValue', 'whJkt', 'hubBdg', 'totalReserved',
+            'ar', 'ap', 'bank',
+            'openSOs', 'openPOs',
+            'draftInvoiceCount', 'draftInvoiceValue',
+            'recentLogs', 'recentDeliveries', 'recentReceipts'
         ));
     })->name('reporting.dashboard');
 

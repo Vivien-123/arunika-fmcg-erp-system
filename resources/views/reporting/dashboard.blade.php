@@ -74,6 +74,37 @@
         </div>
     </div>
 
+    {{-- SR-19: Open Orders KPI row --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-lg border border-blue-200 p-4 flex flex-col gap-1">
+            <p class="text-[10px] text-blue-500 uppercase font-bold tracking-wide">Open Sales Orders</p>
+            <span class="text-xl font-bold text-gray-800">{{ $openSOs->cnt ?? 0 }}</span>
+            <span class="text-xs text-gray-500">Gross Rp{{ number_format($openSOs->total ?? 0) }}</span>
+            <p class="text-[10px] text-blue-400">Status: confirmed/done · SR-19</p>
+        </div>
+        <div class="bg-white rounded-lg border border-amber-200 p-4 flex flex-col gap-1">
+            <p class="text-[10px] text-amber-500 uppercase font-bold tracking-wide">Open Purchase Orders</p>
+            <span class="text-xl font-bold text-gray-800">{{ $openPOs->cnt ?? 0 }}</span>
+            <span class="text-xs text-gray-500">Gross Rp{{ number_format($openPOs->total ?? 0) }}</span>
+            <p class="text-[10px] text-amber-400">Status: confirmed · SR-19</p>
+        </div>
+        <div class="bg-white rounded-lg border border-purple-200 p-4 flex flex-col gap-1">
+            <p class="text-[10px] text-purple-500 uppercase font-bold tracking-wide">Reserved Stock</p>
+            <span class="text-xl font-bold text-gray-800">{{ number_format($totalReserved) }}</span>
+            <span class="text-xs text-gray-500">unit terkunci dari SO Confirmed</span>
+            <p class="text-[10px] text-purple-400">SR-22 · Available = On Hand − Reserved</p>
+        </div>
+        {{-- T-34: Draft invoices must NOT inflate AR --}}
+        <div class="bg-white rounded-lg border {{ $draftInvoiceCount > 0 ? 'border-orange-300' : 'border-gray-200' }} p-4 flex flex-col gap-1">
+            <p class="text-[10px] {{ $draftInvoiceCount > 0 ? 'text-orange-500' : 'text-gray-400' }} uppercase font-bold tracking-wide">Draft Invoices</p>
+            <span class="text-xl font-bold {{ $draftInvoiceCount > 0 ? 'text-orange-700' : 'text-gray-400' }}">{{ $draftInvoiceCount }}</span>
+            <span class="text-xs text-gray-500">Rp{{ number_format($draftInvoiceValue) }} — NOT in AR</span>
+            <p class="text-[10px] {{ $draftInvoiceCount > 0 ? 'text-orange-400' : 'text-green-500' }}">
+                {{ $draftInvoiceCount > 0 ? '⚠ Belum diposting' : '✓ T-34: AR tidak menggelembung' }}
+            </p>
+        </div>
+    </div>
+
     {{-- Charts Row --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
 
@@ -120,7 +151,10 @@
             <h3 class="text-sm font-semibold text-gray-800">Credit Exposure Watchlist</h3>
             <p class="text-xs text-gray-400 mb-4">SR-11 monitoring · Hard block at 100%</p>
 
-            @foreach($customers as $customer)
+            @php
+                $creditCustomers = \App\Models\Customer::where('open_ar', '>', 0)->orWhereHas('salesOrders', function($q){ $q->whereIn('status', ['confirmed']); })->get();
+            @endphp
+            @foreach($creditCustomers as $customer)
             @php
                 $pct = $customer->credit_limit > 0 ? round($customer->open_ar / $customer->credit_limit * 100) : 0;
                 $barColor = $pct >= 80 ? 'bg-red-500' : ($pct >= 50 ? 'bg-amber-500' : 'bg-green-500');
@@ -141,7 +175,7 @@
             </div>
             @endforeach
 
-            @if($customers->isEmpty())
+            @if($creditCustomers->isEmpty())
             <p class="text-xs text-gray-400 italic">Tidak ada customer dengan open AR.</p>
             @endif
         </div>

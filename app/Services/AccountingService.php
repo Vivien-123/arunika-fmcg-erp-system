@@ -155,6 +155,26 @@ class AccountingService
                 $this->postEntry($invoice, 'sales', $ref.'-TAX', self::VAT_OUTPUT, self::AR, $invoice->tax_amount, "PPN reversal - {$ref}", $postedBy);
             }
             $invoice->update(['status' => 'posted', 'posted_by' => $postedBy, 'posted_at' => now()]);
+
+            // M2-W3-01: Update invoiced_qty on SO lines after Customer Invoice posted (SR-02)
+            if ($invoice->invoice_type === 'customer_invoice' && $invoice->source_document_id) {
+                foreach ($invoice->items as $item) {
+                    // Find SO line by source_so + variant_sku and increment invoiced_qty
+                    \App\Models\SalesOrderLine::where('sales_order_id', $invoice->source_document_id)
+                        ->where('variant_sku', $item->variant_sku)
+                        ->increment('invoiced_qty', (int)$item->quantity);
+                }
+            }
+
+            // M2-W3-01: Update billed_qty on PO lines after Vendor Bill posted (SR-06)
+            if ($invoice->invoice_type === 'vendor_bill' && $invoice->source_document_id) {
+                foreach ($invoice->items as $item) {
+                    \App\Models\PurchaseOrderLine::where('purchase_order_id', $invoice->source_document_id)
+                        ->where('variant_sku', $item->variant_sku)
+                        ->increment('billed_qty', (int)$item->quantity);
+                }
+            }
+
             AuditLog::record($invoice->invoice_type, $ref, 'posted', $postedBy, "Invoice {$ref} diposting. SR-16: idempotent.");
             return $invoice->fresh();
         });
