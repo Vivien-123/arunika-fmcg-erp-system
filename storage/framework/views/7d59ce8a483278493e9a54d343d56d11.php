@@ -119,7 +119,6 @@
         <p class="text-xs text-gray-400 uppercase tracking-wide mb-2">Menu — <?php echo e(auth()->user()->role); ?></p>
         <div class="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8">
             <?php
-<<<<<<< Updated upstream
                 $menus = auth()->user()->allowedMenus();
                 $menuRoutes = [
                     'Sales'=>route('sales.orders.index'),'CRM'=>route('crm.leads.index'),
@@ -129,10 +128,6 @@
                     'Reporting'=>route('reporting.dashboard'),'Wireframes'=>route('wireframes'),
                 ];
                 $menuIcons = ['Sales'=>'🛒','CRM'=>'📋','Purchase'=>'📦','Inventory'=>'🏭','Accounting'=>'📊','Invoicing'=>'🧾','Employees'=>'👤','Reporting'=>'📈','Wireframes'=>'🖼️'];
-=======
-                $menuRoutes = ['Employees'=>route('employees.index'),'Wireframes'=>route('wireframes'),'Reporting'=>route('reporting.audit'),'Sales'=>'#','CRM'=>'#','Purchase'=>'#','Inventory'=>'#','Accounting'=>route('accounting.invoices.index'),'Invoicing'=>route('accounting.invoices.index')];
-                $menuIcons  = ['Sales'=>'🛒','CRM'=>'📋','Purchase'=>'📦','Inventory'=>'🏭','Accounting'=>'📊','Invoicing'=>'🧾','Employees'=>'👤','Reporting'=>'📈','Wireframes'=>'🖼️'];
->>>>>>> Stashed changes
             ?>
             <?php $__currentLoopData = $menus; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $menu): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
             <a href="<?php echo e($menuRoutes[$menu] ?? '#'); ?>" onclick="toggleAppSwitcher()" class="flex flex-col items-center p-2 rounded hover:bg-gray-100 transition text-center">
