@@ -8,7 +8,8 @@ npm-debug.log
 storage/framework/sessions/
 storage/framework/views/
 storage/logs/
-database/database.sqlite
+# database.sqlite TIDAK di-ignore agar tidak hilang saat pull
+# database/database.sqlite
 database/database.sqlite-journal
 
 # Test output / temp files
