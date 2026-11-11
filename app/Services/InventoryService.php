@@ -187,20 +187,34 @@ class InventoryService
                 }
 
                 // SR-09/SR-07: FEFO lot picking for lot-tracked SKUs
-                $lotId = null;
-                $lots = ProductLot::fefoLotsFor($line->variant_sku, $delivery->source_location);
+                $lotId       = null;
+                $lots        = ProductLot::fefoLotsFor($line->variant_sku, $delivery->source_location);
+                $lotsToDeduct = [];
+
                 if ($lots->count() > 0) {
+                    // SR-09: blocked if the earliest-expiry lot is expired
                     $firstLot = $lots->first();
-                    // SR-09: expired lots blocked
                     if ($firstLot->expiry_date->isPast()) {
                         throw new \RuntimeException(
                             "SR-09: Lot {$firstLot->lot_id} sudah kedaluwarsa ({$firstLot->expiry_date->toDateString()}) — dilarang dikirim."
                         );
                     }
-                    $lotId = $firstLot->lot_id;
-                    // Deduct from lot qty
-                    $deductFromLot = min($doneQty, $firstLot->qty);
-                    $firstLot->decrement('qty', $deductFromLot);
+
+                    // SR-07: multi-lot FEFO allocation — drain lots in expiry order
+                    $remaining = $doneQty;
+                    foreach ($lots as $lot) {
+                        if ($remaining <= 0) break;
+                        $take = min($lot->qty, $remaining);
+                        $lotsToDeduct[] = ['lot' => $lot, 'qty' => $take];
+                        $remaining -= $take;
+                    }
+                    // Record the first lot id picked (for StockMove / DeliveryLine traceability)
+                    $lotId = $lots->first()->lot_id;
+
+                    // Apply lot decrements
+                    foreach ($lotsToDeduct as $entry) {
+                        $entry['lot']->decrement('qty', $entry['qty']);
+                    }
                 }
 
                 // Deduct stock at source location and company total
@@ -246,6 +260,7 @@ class InventoryService
                 }
 
                 // Perpetual stock move ledger
+                // idempotency key includes line->id to handle multi-line same-SKU delivery
                 StockMove::create([
                     'reference'       => $deliveryId,
                     'move_type'       => 'delivery',
@@ -258,7 +273,7 @@ class InventoryService
                     'lot_id'          => $lotId,
                     'actor_user'      => $actorUser,
                     'actor_employee'  => $signingEmployeeId,
-                    'idempotency_key' => md5("sm_delivery|{$deliveryId}|{$line->variant_sku}"),
+                    'idempotency_key' => md5("sm_delivery|{$deliveryId}|{$line->id}|{$line->variant_sku}"),
                 ]);
             }
 
