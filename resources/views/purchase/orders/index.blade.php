@@ -10,15 +10,15 @@
 @endsection
 
 @section('content')
-<div class="space-y-4">
+<div class="space-y-5">
     {{-- Header --}}
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-lg font-semibold text-gray-800">Purchase Orders</h1>
-            <p class="text-xs text-gray-400 mt-0.5">RFQ, Confirmed PO & Goods Receipt tracking</p>
+            <h1 class="page-title">Purchase Orders</h1>
+            <p class="page-sub">RFQ → Konfirmasi → Penerimaan Barang · SR-21 price lock · SR-06 3-way match</p>
         </div>
         <a href="{{ route('purchase.orders.create') }}"
-           class="inline-flex items-center gap-1.5 bg-[#714B67] text-white text-xs font-medium px-3 py-1.5 rounded hover:bg-[#5E3D56] transition">
+           class="btn-primary text-xs flex items-center gap-1.5">
             + Buat RFQ
         </a>
     </div>
@@ -35,17 +35,17 @@
     </div>
 
     {{-- Table --}}
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div class="panel overflow-hidden">
         <table class="w-full text-xs">
             <thead>
-                <tr class="bg-gray-50 border-b border-gray-200">
-                    <th class="sticky-th text-left px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide">PO#</th>
-                    <th class="sticky-th text-left px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide">Vendor</th>
-                    <th class="sticky-th text-left px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide">Tgl Order</th>
-                    <th class="sticky-th text-right px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide">Net</th>
-                    <th class="sticky-th text-right px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide">Gross</th>
-                    <th class="sticky-th text-center px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide">Status</th>
-                    <th class="sticky-th px-4 py-2.5"></th>
+                <tr class="border-b border-gray-100">
+                    <th class="text-left px-4 py-2.5 font-semibold text-gray-400 uppercase tracking-wide text-[10px]">PO#</th>
+                    <th class="text-left px-4 py-2.5 font-semibold text-gray-400 uppercase tracking-wide text-[10px]">Vendor</th>
+                    <th class="text-left px-4 py-2.5 font-semibold text-gray-400 uppercase tracking-wide text-[10px]">Tgl Order</th>
+                    <th class="text-right px-4 py-2.5 font-semibold text-gray-400 uppercase tracking-wide text-[10px]">Net</th>
+                    <th class="text-right px-4 py-2.5 font-semibold text-gray-400 uppercase tracking-wide text-[10px]">Gross</th>
+                    <th class="text-center px-4 py-2.5 font-semibold text-gray-400 uppercase tracking-wide text-[10px]">Status</th>
+                    <th class="px-4 py-2.5"></th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">

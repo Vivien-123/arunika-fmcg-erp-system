@@ -28,7 +28,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/employees/defense', fn() => view('employees.defense'))->name('employees.defense');
     Route::get('/employees/{id}', [EmployeeController::class, 'show'])->name('employees.show');
     Route::post('/employees/{id}/toggle-status', [EmployeeController::class, 'toggleStatus'])
-         ->name('employees.toggleStatus')->middleware('role:HR,Owner');
+         ->name('employees.toggleStatus')->middleware('role:HR,MasterAdmin');
     Route::post('/employees/validate-signoff', [EmployeeController::class, 'validateSignOff'])
          ->name('employees.validateSignOff');
 
@@ -178,11 +178,12 @@ Route::middleware(['auth'])->group(function () {
         ];
         $passed = collect($tests)->where('status','pass')->count();
         $total = count($tests);
+        $tests = collect($tests); // convert to collection for groupBy in view
         return view('reporting.testing', compact('tests','passed','total'));
     })->name('reporting.testing');
 
     // ── CRM / Leads (M1 · F-04 · S-04 · T-07, T-08) ─────────────────────
-    Route::middleware('role:Sales,Owner')->prefix('crm')->name('crm.')->group(function () {
+    Route::middleware('role:Sales,Owner,MasterAdmin')->prefix('crm')->name('crm.')->group(function () {
         Route::get('/leads',                               [LeadController::class, 'index'])->name('leads.index');
         Route::post('/leads',                              [LeadController::class, 'store'])->name('leads.store');
         Route::get('/leads/{id}',                          [LeadController::class, 'show'])->name('leads.show');
@@ -190,29 +191,25 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/leads/{id}/update-customer',         [LeadController::class, 'updateCustomer'])->name('leads.update-customer');
     });
 
-    // ── Sales Orders (M1 · F-05, F-06, F-10, F-22 · S-05 · T-03,T-04,T-09,T-10) ──
+    // ── Sales Orders ──────────────────────────────────────────────────────
     Route::prefix('sales')->name('sales.')->group(function () {
-        // Read access: Sales + Owner
-        Route::middleware('role:Sales,Owner')->group(function () {
+        Route::middleware('role:Sales,Owner,MasterAdmin')->group(function () {
             Route::get('/orders',                          [SalesOrderController::class, 'index'])->name('orders.index');
             Route::get('/orders/create',                   [SalesOrderController::class, 'create'])->name('orders.create');
             Route::post('/orders',                         [SalesOrderController::class, 'store'])->name('orders.store');
             Route::get('/orders/{id}',                     [SalesOrderController::class, 'show'])->name('orders.show');
             Route::post('/orders/{id}/confirm',            [SalesOrderController::class, 'confirm'])->name('orders.confirm');
             Route::post('/orders/{id}/cancel',             [SalesOrderController::class, 'cancel'])->name('orders.cancel');
-            // API: credit exposure check (used by create-form JS)
             Route::get('/api/credit/{customerId}',         [SalesOrderController::class, 'creditExposure'])->name('api.credit');
         });
-
-        // Discount approval: Finance + Owner only (SR-08)
-        Route::middleware('role:Finance,Owner')->group(function () {
+        Route::middleware('role:Finance,Owner,MasterAdmin')->group(function () {
             Route::post('/orders/{id}/approve-discount',   [SalesOrderController::class, 'approveDiscount'])->name('orders.approve-discount');
             Route::post('/orders/{id}/reject-discount',    [SalesOrderController::class, 'rejectDiscount'])->name('orders.reject-discount');
         });
     });
 
     // ── Purchase Orders (M2 · F-11 · S-08 · T-05, T-15, T-16) ───────────
-    Route::prefix('purchase')->name('purchase.')->middleware('role:Purchase,Owner,Finance')->group(function () {
+    Route::prefix('purchase')->name('purchase.')->middleware('role:Purchase,Owner,Finance,MasterAdmin')->group(function () {
         Route::get('/orders', [\App\Http\Controllers\Purchase\PurchaseOrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/create', [\App\Http\Controllers\Purchase\PurchaseOrderController::class, 'create'])->name('orders.create');
         Route::post('/orders', [\App\Http\Controllers\Purchase\PurchaseOrderController::class, 'store'])->name('orders.store');
@@ -222,19 +219,17 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/orders/{id}/receipt/create', [\App\Http\Controllers\Purchase\PurchaseOrderController::class, 'createReceipt'])->name('orders.receipt.create');
     });
 
-    // ── Deliveries & Receipts (M2 · F-07/F-08/F-17 · S-06 · T-11–T-18) ─
     Route::prefix('inventory')->name('inventory.')->group(function () {
-        // Delivery Orders — Warehouse, Owner
-        Route::middleware('role:Warehouse,Owner')->group(function () {
+        Route::middleware('role:Warehouse,Owner,MasterAdmin')->group(function () {
             Route::get('/deliveries', [\App\Http\Controllers\Inventory\DeliveryController::class, 'index'])->name('deliveries.index');
             Route::get('/deliveries/create', [\App\Http\Controllers\Inventory\DeliveryController::class, 'create'])->name('deliveries.create');
             Route::post('/deliveries', [\App\Http\Controllers\Inventory\DeliveryController::class, 'store'])->name('deliveries.store');
             Route::get('/deliveries/{id}', [\App\Http\Controllers\Inventory\DeliveryController::class, 'show'])->name('deliveries.show');
             Route::post('/deliveries/{id}/validate', [\App\Http\Controllers\Inventory\DeliveryController::class, 'validateDelivery'])->name('deliveries.validate');
+
         });
 
-        // Goods Receipts — Warehouse, Purchase, Owner
-        Route::middleware('role:Warehouse,Purchase,Owner')->group(function () {
+        Route::middleware('role:Warehouse,Purchase,Owner,MasterAdmin')->group(function () {
             Route::get('/receipts', [\App\Http\Controllers\Inventory\ReceiptController::class, 'index'])->name('receipts.index');
             Route::post('/receipts', [\App\Http\Controllers\Inventory\ReceiptController::class, 'store'])->name('receipts.store');
             Route::get('/receipts/{id}', [\App\Http\Controllers\Inventory\ReceiptController::class, 'show'])->name('receipts.show');
@@ -272,7 +267,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // ── Accounting & Invoicing (M4) ───────────────────────────────────────
-    Route::middleware('role:Finance,Owner')->group(function () {
+    Route::middleware('role:Finance,Owner,MasterAdmin')->group(function () {
         // Customer Invoices (F-09, S-10)
         Route::get('/accounting/invoices',                                    [AccountingController::class, 'invoiceIndex'])->name('accounting.invoices.index');
         Route::get('/accounting/invoices/create',                             [AccountingController::class, 'invoiceCreate'])->name('accounting.invoices.create');

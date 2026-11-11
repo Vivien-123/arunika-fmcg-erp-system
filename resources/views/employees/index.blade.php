@@ -63,14 +63,14 @@
 @section('content')
 
 {{-- Department cards --}}
-<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-4">
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
     @foreach($departments as $dept)
     @php $cnt = $employees->where('department_id',$dept->dept_id)->count(); @endphp
     <button onclick="quickDeptFilter('{{ $dept->dept_id }}')"
-            class="bg-white rounded-xl border p-3 text-center hover:shadow-sm transition
-                   {{ request('dept')===$dept->dept_id ? 'border-[#714B67] bg-purple-50' : 'border-gray-200' }}">
-        <div class="text-lg font-bold text-[#714B67]">{{ $cnt }}</div>
-        <div class="text-xs text-gray-600 font-medium">{{ $dept->name }}</div>
+            class="panel p-4 text-center hover:border-[#714B67] transition
+                   {{ request('dept')===$dept->dept_id ? 'border-[#714B67] bg-purple-50/50' : '' }}">
+        <div class="text-2xl font-bold text-[#714B67]">{{ $cnt }}</div>
+        <div class="text-xs text-gray-600 font-semibold mt-0.5">{{ $dept->name }}</div>
         <div class="text-[10px] text-gray-400">pegawai</div>
     </button>
     @endforeach
@@ -90,8 +90,8 @@
 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
     @forelse($employees as $emp)
     <a href="{{ route('employees.show',$emp->id) }}"
-       class="bg-white rounded-xl border hover:shadow-md transition {{ $emp->status==='Aktif' ? 'border-gray-200' : 'border-red-200 opacity-80' }}">
-        <div class="p-4">
+       class="panel hover:border-[#714B67] {{ $emp->status==='Aktif' ? '' : 'opacity-75' }} flex flex-col">
+        <div class="p-4 flex-1">
             <div class="flex items-start gap-3 mb-3">
                 <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0
                             {{ $emp->status==='Aktif' ? 'bg-[#714B67]' : 'bg-gray-400' }}">
@@ -103,19 +103,28 @@
                 </div>
             </div>
             <div class="space-y-1 text-xs text-gray-500">
-                <div class="flex items-center gap-1">🏢 <span class="truncate">{{ $emp->department?->name ?? $emp->department_id }}</span></div>
-                <div class="flex items-center gap-1">📍 {{ $emp->location }}</div>
-                <div class="flex items-center gap-1">🆔 <span class="font-mono">{{ $emp->id }}</span></div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-3 h-3 text-gray-400">🏢</span>
+                    <span class="truncate">{{ $emp->department?->name ?? $emp->department_id }}</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-3 h-3 text-gray-400">📍</span>
+                    <span>{{ $emp->location }}</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-3 h-3 text-gray-400">🆔</span>
+                    <span class="mono text-[11px]">{{ $emp->id }}</span>
+                </div>
             </div>
         </div>
-        <div class="border-t px-4 py-2 flex items-center justify-between
-                    {{ $emp->status==='Aktif' ? 'bg-green-50' : 'bg-red-50' }}">
-            <span class="flex items-center gap-1 text-xs font-medium {{ $emp->status==='Aktif' ? 'text-green-700' : 'text-red-600' }}">
-                <span class="w-2 h-2 rounded-full {{ $emp->status==='Aktif' ? 'bg-green-500' : 'bg-red-400' }}"></span>
+        <div class="border-t border-gray-100 px-4 py-2 flex items-center justify-between rounded-b-lg
+                    {{ $emp->status==='Aktif' ? 'bg-green-50/60' : 'bg-red-50/60' }}">
+            <span class="flex items-center gap-1.5 text-xs font-medium {{ $emp->status==='Aktif' ? 'text-green-700' : 'text-red-600' }}">
+                <span class="dot {{ $emp->status==='Aktif' ? 'bg-green-500' : 'bg-red-400' }}"></span>
                 {{ $emp->status }}
             </span>
             @if($emp->canSignOff())
-            <span class="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">✓ Sign-off</span>
+            <span class="badge badge-blue text-[10px]">✓ Sign-off</span>
             @endif
         </div>
     </a>

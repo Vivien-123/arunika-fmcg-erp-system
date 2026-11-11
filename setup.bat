@@ -19,7 +19,7 @@ echo [3/4] Running migrations...
 php artisan migrate:fresh --force
 
 echo [4/4] Running seeder...
-php artisan db:seed --class=FmcgSeeder --force
+php artisan db:seed --class=FmcgSeeder --force 2>nul || php seed_data.php
 
 echo.
 echo ============================================

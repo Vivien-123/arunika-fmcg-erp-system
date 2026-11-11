@@ -10,25 +10,25 @@
 @endsection
 
 @section('content')
-<div class="space-y-4">
+<div class="space-y-5">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-lg font-semibold text-gray-800">Goods Receipts</h1>
-            <p class="text-xs text-gray-400 mt-0.5">Penerimaan barang dari vendor · SR-06 3-way match · SR-17 sign-off</p>
+            <h1 class="page-title">Goods Receipts</h1>
+            <p class="page-sub">Penerimaan dari vendor · SR-06 3-way match · SR-17 sign-off active Warehouse employee</p>
         </div>
     </div>
 
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div class="panel overflow-hidden">
         <table class="w-full text-xs">
             <thead>
-                <tr class="bg-gray-50 border-b border-gray-200">
-                    <th class="sticky-th text-left px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide">GR#</th>
-                    <th class="sticky-th text-left px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide">PO#</th>
-                    <th class="sticky-th text-left px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide">Vendor</th>
-                    <th class="sticky-th text-left px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide">Lokasi</th>
-                    <th class="sticky-th text-center px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide">Status</th>
-                    <th class="sticky-th text-left px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide">Validated</th>
-                    <th class="sticky-th px-4 py-2.5"></th>
+                <tr class="border-b border-gray-100">
+                    <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">GR#</th>
+                    <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">PO#</th>
+                    <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Vendor</th>
+                    <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Lokasi</th>
+                    <th class="text-center px-4 py-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Status</th>
+                    <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Validated</th>
+                    <th class="px-4 py-2.5"></th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">

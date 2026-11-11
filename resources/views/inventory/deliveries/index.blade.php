@@ -10,29 +10,29 @@
 @endsection
 
 @section('content')
-<div class="space-y-4">
+<div class="space-y-5">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-lg font-semibold text-gray-800">Delivery Orders</h1>
-            <p class="text-xs text-gray-400 mt-0.5">FEFO picking · SR-04 anti-negative · SR-17 sign-off</p>
+            <h1 class="page-title">Delivery Orders</h1>
+            <p class="page-sub">FEFO picking · SR-04 anti-negative stock · SR-17 sign-off validator</p>
         </div>
         <a href="{{ route('inventory.deliveries.create') }}"
-           class="inline-flex items-center gap-1.5 bg-[#714B67] text-white text-xs font-medium px-3 py-1.5 rounded hover:bg-[#5E3D56] transition">
-            + Buat Delivery
+           class="btn-primary text-xs flex items-center gap-1.5">
+            + Buat Delivery Order
         </a>
     </div>
 
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div class="panel overflow-hidden">
         <table class="w-full text-xs">
             <thead>
-                <tr class="bg-gray-50 border-b border-gray-200">
-                    <th class="sticky-th text-left px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide">DO#</th>
-                    <th class="sticky-th text-left px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide">SO#</th>
-                    <th class="sticky-th text-left px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide">Customer</th>
-                    <th class="sticky-th text-left px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide">Sumber</th>
-                    <th class="sticky-th text-center px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide">Status</th>
-                    <th class="sticky-th text-left px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide">Validator</th>
-                    <th class="sticky-th px-4 py-2.5"></th>
+                <tr class="border-b border-gray-100">
+                    <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">DO#</th>
+                    <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">SO#</th>
+                    <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Customer</th>
+                    <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Sumber</th>
+                    <th class="text-center px-4 py-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Status</th>
+                    <th class="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Validator</th>
+                    <th class="px-4 py-2.5"></th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">

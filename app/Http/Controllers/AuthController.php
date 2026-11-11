@@ -10,7 +10,9 @@ class AuthController extends Controller
 {
     public function showLogin()
     {
-        if (Auth::check()) return redirect()->route('home');
+        if (Auth::check()) {
+            return redirect()->route('home');
+        }
         return view('auth.login');
     }
 
@@ -21,28 +23,67 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        $field   = filter_var($credentials['username'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
-        $attempt = Auth::attempt([$field => $credentials['username'], 'password' => $credentials['password']], $request->boolean('remember'));
+        $input = $credentials['username'];
+        $field = filter_var($input, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        $attempt = Auth::attempt(
+            [$field => $input, 'password' => $credentials['password']],
+            $request->boolean('remember')
+        );
 
         if ($attempt) {
             $request->session()->regenerate();
-            $user = Auth::user();
-            AuditLog::record('access_control', $user->username ?? $user->email, 'login', $user->username ?? $user->email, "User [{$user->username}] role [{$user->role}] logged in");
+
+            $user   = Auth::user();
+            $actor  = $user->username ?? $user->email ?? 'unknown';
+            $role   = $user->role ?? 'unknown';
+
+            // Audit log — wrap in try/catch so a DB error never blocks login
+            try {
+                AuditLog::record(
+                    'access_control',
+                    $actor,
+                    'login',
+                    $actor,
+                    "User [{$actor}] role [{$role}] logged in"
+                );
+            } catch (\Throwable) {
+                // non-critical — continue login
+            }
+
             return redirect()->intended(route('home'));
         }
 
-        return back()->withErrors(['username' => 'Username atau password salah.'])->onlyInput('username');
+        return back()
+            ->withErrors(['username' => 'Username atau password salah.'])
+            ->onlyInput('username');
     }
 
     public function logout(Request $request)
     {
-        $user = Auth::user();
+        // Capture user info BEFORE logout
+        $user  = Auth::user();
+        $actor = $user ? ($user->username ?? $user->email ?? 'unknown') : 'unknown';
+
+        // Audit BEFORE invalidating session, wrapped so it never blocks logout
         if ($user) {
-            AuditLog::record('access_control', $user->username ?? $user->email, 'logout', $user->username ?? $user->email, "User [{$user->username}] logged out");
+            try {
+                AuditLog::record(
+                    'access_control',
+                    $actor,
+                    'logout',
+                    $actor,
+                    "User [{$actor}] logged out"
+                );
+            } catch (\Throwable) {
+                // non-critical — continue logout
+            }
         }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect()->route('login');
     }
 }

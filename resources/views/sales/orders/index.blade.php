@@ -24,105 +24,104 @@
 @endsection
 
 @section('content')
-<div class="max-w-7xl mx-auto px-2">
+<div class="max-w-7xl mx-auto">
 
     {{-- Header --}}
-    <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center justify-between mb-5">
         <div>
-            <h1 class="text-xl font-bold text-gray-800">① Quotation / Sales Order</h1>
-            <p class="text-xs text-gray-500 mt-0.5">F-05, F-06, F-10, F-22 · S-05 · T-09, T-10</p>
+            <h1 class="page-title">Sales Orders</h1>
+            <p class="page-sub">F-05 Quotation → Confirmed · F-06 Diskon · F-10 Credit limit · SR-12 Price lock</p>
         </div>
-        <a href="{{ route('sales.orders.create') }}"
-           class="bg-[#714B67] text-white px-4 py-2 rounded text-sm hover:bg-[#5c3d56] transition font-medium">
-            ➕ Buat Quotation
+        <a href="{{ route('sales.orders.create') }}" class="btn-primary text-xs flex items-center gap-1.5">
+            + Buat Quotation
         </a>
     </div>
 
     @if(session('success'))
-        <div class="bg-green-50 border border-green-200 text-green-800 rounded px-4 py-2 mb-3 text-sm">✅ {{ session('success') }}</div>
-    @endif
-    @if(session('warning'))
-        <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded px-4 py-2 mb-3 text-sm">⚠️ {{ session('warning') }}</div>
-    @endif
-    @if(session('error'))
-        <div class="bg-red-50 border border-red-200 text-red-800 rounded px-4 py-2 mb-3 text-sm">⛔ {{ session('error') }}</div>
+        {{-- Flash handled by layout --}}
     @endif
 
     {{-- Search / Filters --}}
-    <form method="GET" class="bg-white border rounded-lg p-3 mb-4 flex flex-wrap gap-2 items-end">
-        <div class="flex-1 min-w-[160px]">
-            <label class="block text-xs text-gray-500 mb-0.5">Search</label>
+    <form method="GET" class="panel p-3 mb-5 flex flex-wrap gap-2 items-end">
+        <div class="flex-1 min-w-[180px]">
+            <label class="block text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Cari</label>
             <input type="text" name="search" value="{{ $filters['search'] ?? '' }}"
                    placeholder="SO Number / Pelanggan"
-                   class="w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]">
+                   class="form-input w-full text-xs">
         </div>
         <div>
-            <label class="block text-xs text-gray-500 mb-0.5">Status</label>
-            <select name="status" class="border rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-[#714B67] focus:outline-none">
-                <option value="">Semua</option>
+            <label class="block text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Status</label>
+            <select name="status" class="form-input text-xs">
+                <option value="">Semua Status</option>
                 @foreach(['draft'=>'Draft','to_approve'=>'To Approve','confirmed'=>'Confirmed','done'=>'Done','cancelled'=>'Cancelled'] as $v => $l)
                 <option value="{{ $v }}" {{ ($filters['status']??'')===$v ? 'selected':'' }}>{{ $l }}</option>
                 @endforeach
             </select>
         </div>
         <div>
-            <label class="block text-xs text-gray-500 mb-0.5">Pelanggan</label>
-            <select name="customer_id" class="border rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-[#714B67] focus:outline-none">
-                <option value="">Semua</option>
+            <label class="block text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Pelanggan</label>
+            <select name="customer_id" class="form-input text-xs">
+                <option value="">Semua Pelanggan</option>
                 @foreach($customers as $c)
                 <option value="{{ $c->id }}" {{ ($filters['customer_id']??'')===$c->id ? 'selected':'' }}>{{ $c->id }} — {{ $c->name }}</option>
                 @endforeach
             </select>
         </div>
-        <button type="submit" class="bg-[#714B67] text-white px-3 py-1.5 rounded text-sm hover:bg-[#5c3d56] transition">Terapkan</button>
-        <a href="{{ route('sales.orders.index') }}" class="text-gray-500 text-sm px-3 py-1.5 hover:underline">Reset</a>
+        <button type="submit" class="btn-primary text-xs">Terapkan</button>
+        <a href="{{ route('sales.orders.index') }}" class="btn-secondary text-xs">Reset</a>
     </form>
 
     {{-- ④ List table --}}
-    <div class="bg-white border rounded-xl shadow-sm overflow-hidden">
-        <table class="w-full text-sm">
-            <thead class="bg-gray-50 text-xs text-gray-500 uppercase tracking-wider border-b">
-                <tr>
-                    <th class="px-4 py-3 text-left">Nomor</th>
-                    <th class="px-4 py-3 text-left">Pelanggan</th>
-                    <th class="px-4 py-3 text-right">Net</th>
-                    <th class="px-4 py-3 text-right">PPN</th>
-                    <th class="px-4 py-3 text-right">Gross</th>
-                    <th class="px-4 py-3 text-center">Status</th>
-                    <th class="px-4 py-3 text-center">Tanggal</th>
-                    <th class="px-4 py-3"></th>
+    <div class="panel overflow-hidden">
+        <table class="w-full text-xs">
+            <thead>
+                <tr class="border-b border-gray-100">
+                    <th class="px-4 py-2.5 text-left text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Nomor</th>
+                    <th class="px-4 py-2.5 text-left text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Pelanggan</th>
+                    <th class="px-4 py-2.5 text-right text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Net</th>
+                    <th class="px-4 py-2.5 text-right text-[10px] font-semibold text-gray-400 uppercase tracking-wide">PPN</th>
+                    <th class="px-4 py-2.5 text-right text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Gross</th>
+                    <th class="px-4 py-2.5 text-center text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Status</th>
+                    <th class="px-4 py-2.5 text-center text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Tanggal</th>
+                    <th class="px-4 py-2.5"></th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-50">
                 @forelse($orders as $order)
-                <tr class="hover:bg-gray-50 transition">
-                    <td class="px-4 py-3 font-mono font-semibold text-[#714B67]">
-                        <a href="{{ route('sales.orders.show', $order->id) }}" class="hover:underline">{{ $order->id }}</a>
-                    </td>
-                    <td class="px-4 py-3 text-gray-700">{{ $order->customer_name }}</td>
-                    <td class="px-4 py-3 text-right text-gray-600">Rp{{ number_format($order->untaxed_amount) }}</td>
-                    <td class="px-4 py-3 text-right text-gray-400">Rp{{ number_format($order->tax_amount) }}</td>
-                    <td class="px-4 py-3 text-right font-semibold text-gray-800">Rp{{ number_format($order->gross_amount) }}</td>
+                <tr class="tr-hover" onclick="window.location='{{ route('sales.orders.show', $order->id) }}'">
+                    <td class="px-4 py-3 font-mono font-semibold text-[#714B67]">{{ $order->id }}</td>
+                    <td class="px-4 py-3 text-gray-700 font-medium">{{ $order->customer_name }}</td>
+                    <td class="px-4 py-3 text-right text-gray-500 tnum">Rp{{ number_format($order->untaxed_amount) }}</td>
+                    <td class="px-4 py-3 text-right text-gray-400 tnum">Rp{{ number_format($order->tax_amount) }}</td>
+                    <td class="px-4 py-3 text-right font-semibold text-gray-800 tnum">Rp{{ number_format($order->gross_amount) }}</td>
                     <td class="px-4 py-3 text-center">
-                        <span class="text-xs px-2 py-1 rounded-full font-medium {{ $statusColors[$order->status] ?? 'bg-gray-100 text-gray-500' }}">
-                            {{ ucfirst(str_replace('_',' ',$order->status)) }}
-                        </span>
+                        <span class="badge {{ match($order->status) {
+                            'draft'      => 'badge-gray',
+                            'to_approve' => 'badge-yellow',
+                            'confirmed'  => 'badge-green',
+                            'done'       => 'badge-blue',
+                            'cancelled'  => 'badge-red',
+                            default      => 'badge-gray',
+                        } }}">{{ ucfirst(str_replace('_',' ',$order->status)) }}</span>
                     </td>
-                    <td class="px-4 py-3 text-center text-gray-400 text-xs">{{ $order->order_date }}</td>
+                    <td class="px-4 py-3 text-center text-gray-400">{{ $order->order_date ?? '—' }}</td>
                     <td class="px-4 py-3 text-right">
                         <a href="{{ route('sales.orders.show', $order->id) }}"
-                           class="text-[#714B67] text-xs hover:underline">Detail →</a>
+                           class="text-[#714B67] text-xs hover:underline" onclick="event.stopPropagation()">Detail →</a>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="px-4 py-10 text-center text-gray-400 italic">Tidak ada Sales Order.</td>
+                    <td colspan="8" class="px-4 py-12 text-center text-gray-400">
+                        <p class="font-medium">Belum ada Sales Order</p>
+                        <a href="{{ route('sales.orders.create') }}" class="text-[#714B67] text-xs hover:underline mt-1 inline-block">Buat Quotation pertama →</a>
+                    </td>
                 </tr>
                 @endforelse
             </tbody>
         </table>
         @if($orders->hasPages())
-        <div class="px-4 py-3 border-t">{{ $orders->withQueryString()->links() }}</div>
+        <div class="px-4 py-3 border-t border-gray-100 bg-gray-50/50">{{ $orders->withQueryString()->links() }}</div>
         @endif
     </div>
 </div>

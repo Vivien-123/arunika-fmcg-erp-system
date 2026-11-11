@@ -1,127 +1,172 @@
 @extends('layouts.app')
-@section('title','Beranda')
+@section('title','Dashboard')
 @php
-    $currentApp  = 'Home';
-    $sidebarMenu = [
-        ['label' => 'Overview', 'url' => route('home'), 'icon' => 'home'],
-    ];
+    $currentApp = 'Dashboard';
     $user  = auth()->user();
     $menus = $user->allowedMenus();
 
     $allMenus = [
-        'Sales'      => ['emoji' => '🛒', 'desc' => 'Order to Cash',        'url' => route('sales.orders.index'),        'gradient' => 'from-orange-400 to-orange-500'],
-        'CRM'        => ['emoji' => '📋', 'desc' => 'Lead & Opportunity',    'url' => route('crm.leads.index'),           'gradient' => 'from-yellow-400 to-amber-500'],
-        'Purchase'   => ['emoji' => '📦', 'desc' => 'Procure to Pay',        'url' => '#',                                'gradient' => 'from-blue-400 to-blue-600'],
-        'Inventory'  => ['emoji' => '🏭', 'desc' => 'Stok & Transfer',       'url' => route('inventory.stock'),           'gradient' => 'from-cyan-400 to-teal-500'],
-        'Accounting' => ['emoji' => '📊', 'desc' => 'Jurnal & Ledger',       'url' => route('accounting.invoices.index'), 'gradient' => 'from-green-400 to-emerald-600'],
-        'Invoicing'  => ['emoji' => '🧾', 'desc' => 'Invoice & Pembayaran',  'url' => route('accounting.invoices.index'), 'gradient' => 'from-emerald-400 to-green-600'],
-        'Employees'  => ['emoji' => '👤', 'desc' => 'Pegawai & Departemen',  'url' => route('employees.index'),           'gradient' => 'from-purple-400 to-violet-600'],
-        'Reporting'  => ['emoji' => '📈', 'desc' => 'KPI & Audit Trail',     'url' => route('reporting.dashboard'),       'gradient' => 'from-pink-400 to-rose-500'],
-        'Wireframes' => ['emoji' => '🗂',  'desc' => 'S-01 s/d S-18',        'url' => route('wireframes'),                'gradient' => 'from-gray-400 to-gray-600'],
+        'Sales'      => ['url'=>route('sales.orders.index'),        'desc'=>'Quotation → Order to Cash',    'sub'=>'Sales Orders, CRM Pipeline'],
+        'CRM'        => ['url'=>route('crm.leads.index'),           'desc'=>'Lead & Opportunity pipeline',  'sub'=>'Leads, Opportunities'],
+        'Purchase'   => ['url'=>route('purchase.orders.index'),     'desc'=>'RFQ → Procure to Pay',         'sub'=>'Purchase Orders, Receipts'],
+        'Inventory'  => ['url'=>route('inventory.stock'),           'desc'=>'Stok, Transfer & Delivery',    'sub'=>'Stock, DO, GR, Transfer'],
+        'Accounting' => ['url'=>route('accounting.invoices.index'), 'desc'=>'Jurnal, Ledger & Pajak',       'sub'=>'Invoice, Bill, Ledger'],
+        'Invoicing'  => ['url'=>route('accounting.invoices.index'), 'desc'=>'Invoice & Pembayaran',         'sub'=>'Customer Invoice, Credit Note'],
+        'Employees'  => ['url'=>route('employees.index'),           'desc'=>'Pegawai & Departemen',         'sub'=>'Directory, Sign-off Control'],
+        'Reporting'  => ['url'=>route('reporting.dashboard'),       'desc'=>'KPI, Audit & Testing',         'sub'=>'Dashboard, Audit, T-01..T-36'],
+        'Wireframes' => ['url'=>route('wireframes'),                'desc'=>'S-01 s/d S-18',                'sub'=>'All screen wireframes'],
     ];
-
     $allowedMenus = array_filter($allMenus, fn($key) => in_array($key, $menus), ARRAY_FILTER_USE_KEY);
 @endphp
 
 @section('breadcrumb')
-    <span class="mx-1 text-gray-400">›</span>
-    <span class="text-gray-700 font-medium">Beranda</span>
+    <span class="mx-1">/</span>
+    <span class="text-gray-600 font-medium">Dashboard</span>
+@endsection
+
+@section('control_panel_extra')
+@if($user->role === 'Owner')
+<span class="text-[11px] font-semibold bg-gray-100 text-gray-500 px-2.5 py-1 rounded flex items-center gap-1.5">
+    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+    Read-only mode
+</span>
+@elseif($user->role === 'MasterAdmin')
+<span class="text-[11px] font-semibold bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded flex items-center gap-1.5">
+    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+    Master Admin · Full Access
+</span>
+@endif
+<a href="{{ route('reporting.dashboard') }}" class="btn-primary text-xs flex items-center gap-1.5 ml-2">
+    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+    Operational Dashboard
+</a>
 @endsection
 
 @section('content')
-<div class="max-w-5xl mx-auto px-2">
+<div class="max-w-4xl mx-auto">
 
-    {{-- Hero welcome card --}}
-    <div class="relative overflow-hidden bg-gradient-to-br from-[#714B67] to-[#4a2e47] rounded-2xl shadow-lg px-8 py-7 mb-8 flex items-center gap-6">
-        <div class="absolute -right-10 -top-10 w-48 h-48 bg-white/5 rounded-full"></div>
-        <div class="absolute -right-4 -bottom-8 w-32 h-32 bg-white/5 rounded-full"></div>
+    {{-- Welcome --}}
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">Workspace operasional</h1>
+        <p class="text-sm text-gray-400 mt-0.5">Arunika ERP / {{ $user->role }} · Pilih modul untuk memulai</p>
+    </div>
 
-        <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-inner flex-shrink-0">
+    {{-- User info card --}}
+    <div class="panel px-5 py-4 mb-6 flex items-center gap-4">
+        <div class="w-10 h-10 bg-[#714B67] rounded-lg flex items-center justify-center text-white font-bold text-base shrink-0">
             {{ strtoupper(substr($user->name, 0, 1)) }}
         </div>
-        <div class="flex-1 z-10">
-            <p class="text-white/70 text-xs font-medium uppercase tracking-widest mb-1">PT Arunika Distribusi Cepat</p>
-            <h1 class="text-white font-bold text-xl leading-tight">Selamat datang, {{ $user->name }}</h1>
-            <div class="flex items-center gap-3 mt-2">
-                <span class="inline-flex items-center gap-1.5 bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full">
-                    <span class="w-1.5 h-1.5 bg-green-400 rounded-full inline-block"></span>
+        <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 truncate">{{ $user->name }}</p>
+            <div class="flex items-center gap-2 mt-0.5 flex-wrap">
+                <span class="inline-flex items-center gap-1 text-[11px] font-mono font-semibold
+                    @if($user->role==='MasterAdmin') bg-indigo-100 text-indigo-700
+                    @elseif($user->role==='Owner') bg-gray-100 text-gray-500
+                    @elseif($user->role==='HR') bg-purple-100 text-purple-700
+                    @elseif($user->role==='Finance') bg-green-100 text-green-700
+                    @elseif($user->role==='Sales') bg-orange-100 text-orange-700
+                    @elseif($user->role==='Warehouse') bg-cyan-100 text-cyan-700
+                    @else bg-blue-100 text-blue-700
+                    @endif
+                    px-2 py-0.5 rounded">
                     {{ $user->role }}
                 </span>
+                @if($user->role === 'Owner')
+                <span class="text-[11px] text-gray-400 flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Hanya dapat melihat data, tidak dapat mengedit
+                </span>
+                @elseif($user->role === 'MasterAdmin')
+                <span class="text-[11px] text-gray-400 flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    Akses penuh semua modul — dapat edit dan hapus
+                </span>
+                @endif
+                <span class="text-[11px] text-gray-400">· PT Arunika Distribusi Cepat</span>
             </div>
         </div>
-        <div class="z-10 text-right hidden sm:block">
-            <p class="text-white/50 text-xs">Hari ini</p>
-            <p class="text-white font-semibold text-sm">{{ now()->format('d M Y') }}</p>
+        <div class="text-right hidden sm:block text-xs text-gray-400 shrink-0">
+            <p>{{ now()->format('d M Y') }}</p>
         </div>
     </div>
 
-    {{-- Section title --}}
-    <div class="mb-4">
-        <h2 class="font-bold text-gray-800 text-base">Modul Anda</h2>
+    {{-- Module grid --}}
+    <div class="mb-2">
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Modul Tersedia — {{ count($allowedMenus) }} modul</p>
     </div>
 
-    {{-- App grid — hanya yang diizinkan --}}
     @if(count($allowedMenus) === 0)
-    <div class="bg-gray-50 border border-dashed border-gray-300 rounded-2xl py-16 text-center">
-        <p class="text-4xl mb-3">🔒</p>
-        <p class="text-gray-500 font-medium">Tidak ada modul yang tersedia untuk role Anda.</p>
-        <p class="text-gray-400 text-xs mt-1">Hubungi administrator untuk mendapatkan akses.</p>
+    <div class="panel px-6 py-12 text-center">
+        <svg class="w-10 h-10 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+        </svg>
+        <p class="text-sm font-medium text-gray-500">Tidak ada modul yang tersedia.</p>
+        <p class="text-xs text-gray-400 mt-1">Hubungi administrator untuk mendapatkan akses.</p>
     </div>
     @else
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-8">
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
         @foreach($allowedMenus as $name => $info)
         <a href="{{ $info['url'] }}"
-           class="group relative overflow-hidden rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-            <div class="bg-gradient-to-br {{ $info['gradient'] }} p-5 flex flex-col items-center text-center">
-                <div class="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                    <span class="text-3xl">{{ $info['emoji'] }}</span>
+           class="panel px-5 py-4 flex flex-col gap-3 hover:border-[#714B67] hover:shadow-sm transition-all group">
+            <div class="flex items-start justify-between">
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-gray-800 group-hover:text-[#714B67] transition-colors">{{ $name }}</p>
+                    <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">{{ $info['desc'] }}</p>
                 </div>
-                <span class="font-bold text-white text-sm">{{ $name }}</span>
-                <span class="text-white/75 text-[11px] mt-0.5 leading-tight">{{ $info['desc'] }}</span>
+                <svg class="w-4 h-4 text-gray-200 group-hover:text-[#714B67] transition-colors shrink-0 mt-0.5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
             </div>
-            <div class="bg-white px-4 py-2 flex items-center justify-between">
-                <span class="text-[11px] text-gray-500 font-medium">Buka</span>
-                <span class="w-2 h-2 rounded-full bg-green-400"></span>
+            <div class="border-t border-gray-100 pt-2.5 flex items-center justify-between">
+                <p class="text-[10px] text-gray-400">{{ $info['sub'] }}</p>
+                @if($user->role === 'Owner')
+                <span class="text-[10px] text-gray-400 flex items-center gap-0.5">
+                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    View only
+                </span>
+                @else
+                <span class="flex items-center gap-1">
+                    <span class="dot bg-green-400"></span>
+                    <span class="text-[10px] text-green-600">Aktif</span>
+                </span>
+                @endif
             </div>
         </a>
         @endforeach
     </div>
     @endif
 
-    {{-- Ringkasan hak akses — hanya Owner (SR-15) --}}
-    @if($user->role === 'Owner')
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mt-6">
-        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/80">
-            <div>
-                <h3 class="font-semibold text-gray-700 text-sm">Ringkasan Hak Akses</h3>
-                <p class="text-xs text-gray-400 mt-0.5">SR-15 · Hanya terlihat oleh Owner</p>
-            </div>
-            <span class="text-xs bg-green-100 text-green-700 font-semibold px-2.5 py-1 rounded-full">
-                {{ count($allowedMenus) }}/{{ count($allMenus) }} diizinkan
-            </span>
+    {{-- Owner: access summary (visible only to Owner and MasterAdmin) --}}
+    @if(in_array($user->role, ['Owner','MasterAdmin']))
+    <div class="panel overflow-hidden mt-6">
+        <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="text-sm font-semibold text-gray-700">Role Access Matrix</h3>
+            <span class="text-[10px] text-gray-400 mono">SR-15 · {{ $user->role }} only</span>
         </div>
-        <div class="divide-y divide-gray-50">
-            @foreach($allowedMenus as $name => $info)
-            <div class="flex items-center gap-4 px-5 py-3 hover:bg-gray-50/60 transition">
-                <div class="w-8 h-8 bg-gradient-to-br {{ $info['gradient'] }} rounded-lg flex items-center justify-center text-base flex-shrink-0">
-                    {{ $info['emoji'] }}
-                </div>
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold text-gray-800">{{ $name }}</p>
-                    <p class="text-xs text-gray-400">{{ $info['desc'] }}</p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 px-2.5 py-0.5 rounded-full border border-green-200">
-                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                        </svg>
-                        Aktif
-                    </span>
-                    <a href="{{ $info['url'] }}" class="text-[#714B67] hover:text-[#4a2e47] text-xs font-medium hover:underline">Buka</a>
-                </div>
-            </div>
-            @endforeach
-        </div>
+        <table class="w-full text-xs">
+            <thead>
+                <tr class="bg-gray-50 border-b border-gray-100">
+                    <th class="text-left px-5 py-2.5 text-[10px] font-bold text-gray-400 uppercase">Modul</th>
+                    <th class="text-left px-5 py-2.5 text-[10px] font-bold text-gray-400 uppercase">Deskripsi</th>
+                    <th class="text-left px-5 py-2.5 text-[10px] font-bold text-gray-400 uppercase">Akses</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                @foreach($allowedMenus as $name => $info)
+                <tr class="tr-hover">
+                    <td class="px-5 py-2.5 font-semibold text-gray-800">{{ $name }}</td>
+                    <td class="px-5 py-2.5 text-gray-500">{{ $info['desc'] }}</td>
+                    <td class="px-5 py-2.5">
+                        @if($user->role === 'Owner')
+                        <span class="badge badge-gray">View only</span>
+                        @else
+                        <span class="badge badge-green">Full edit</span>
+                        @endif
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
     </div>
     @endif
 

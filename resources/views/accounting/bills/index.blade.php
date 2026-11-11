@@ -8,11 +8,11 @@
 ]; @endphp
 
 @section('content')
-<div class="max-w-6xl mx-auto px-2">
+<div class="max-w-6xl mx-auto">
     <div class="flex items-center justify-between mb-5">
         <div>
-            <h1 class="text-xl font-bold text-gray-800">Vendor Bills</h1>
-            <p class="text-xs text-gray-400 mt-0.5">S-11 · F-13 · SR-06: 3-Way Match PO + Receipt + Bill</p>
+            <h1 class="page-title">Vendor Bills</h1>
+            <p class="page-sub">S-11 · F-13 · SR-06: 3-Way Match PO + Receipt + Bill</p>
         </div>
     </div>
 
@@ -20,23 +20,23 @@
     <div class="bg-green-50 border border-green-200 text-green-700 text-xs px-4 py-2.5 rounded-lg mb-4">✅ {{ session('success') }}</div>
     @endif
 
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="panel overflow-hidden">
         <table class="w-full text-xs">
-            <thead class="bg-gray-50 border-b border-gray-100">
+            <thead class="border-b border-gray-100">
                 <tr>
-                    <th class="text-left px-4 py-3 text-gray-500 font-semibold">No. Dokumen</th>
-                    <th class="text-left px-4 py-3 text-gray-500 font-semibold">Vendor</th>
-                    <th class="text-left px-4 py-3 text-gray-500 font-semibold">Source PO</th>
-                    <th class="text-right px-4 py-3 text-gray-500 font-semibold">Net</th>
-                    <th class="text-right px-4 py-3 text-gray-500 font-semibold">Gross</th>
-                    <th class="text-right px-4 py-3 text-gray-500 font-semibold">Outstanding</th>
-                    <th class="text-center px-4 py-3 text-gray-500 font-semibold">Status</th>
+                    <th class="text-left px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-wide">No. Dokumen</th>
+                    <th class="text-left px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-wide">Vendor</th>
+                    <th class="text-left px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-wide">Source PO</th>
+                    <th class="text-right px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-wide">Net</th>
+                    <th class="text-right px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-wide">Gross</th>
+                    <th class="text-right px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-wide">Outstanding</th>
+                    <th class="text-center px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-wide">Status</th>
                     <th class="px-4 py-3"></th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-50">
                 @forelse($invoices as $inv)
-                <tr class="hover:bg-gray-50/60 transition">
+                <tr class="tr-hover">
                     <td class="px-4 py-3 font-mono font-semibold text-[#714B67]">{{ $inv->document_number }}</td>
                     <td class="px-4 py-3 text-gray-700">{{ $inv->partner_name }}</td>
                     <td class="px-4 py-3 font-mono text-gray-500">{{ $inv->source_document_id ?? '-' }}</td>
