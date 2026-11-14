@@ -269,6 +269,16 @@
                 ],
             ],
         ];
+
+        // Owner is strictly view-only: remove create/action options from sidebar
+        if ($user->isOwner()) {
+            foreach ($moduleSidebarItems as $k => &$mod) {
+                $mod['items'] = array_values(array_filter($mod['items'], function($it) {
+                    return !in_array($it['label'], ['Buat Quotation', 'Buat RFQ', 'Internal Transfer']);
+                }));
+            }
+            unset($mod);
+        }
     ?>
 
     <?php if($showSidebar && isset($moduleSidebarItems[$moduleFromPath])): ?>

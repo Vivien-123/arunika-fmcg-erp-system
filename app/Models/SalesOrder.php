@@ -66,6 +66,7 @@ class SalesOrder extends Model
     public function isToApprove(): bool  { return $this->status === 'to_approve'; }
     public function isConfirmed(): bool  { return in_array($this->status, ['confirmed', 'done']); }
     public function isCancelled(): bool  { return $this->status === 'cancelled'; }
+    public function isDone(): bool       { return $this->status === 'done'; }
 
     /**
      * SR-07/08: Does any line have a discount > 10%?

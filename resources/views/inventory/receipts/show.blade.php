@@ -66,7 +66,7 @@
             <h2 class="text-sm font-semibold text-gray-700">Receipt Lines</h2>
         </div>
 
-        @if($receipt->status !== 'done')
+        @if($receipt->status !== 'done' && auth()->user()->canEdit())
         <form method="POST" action="{{ route('inventory.receipts.validate', $receipt->id) }}" id="validateForm">
             @csrf
         @endif
@@ -90,28 +90,28 @@
                     <td class="px-4 py-2 text-gray-700">{{ $line->product_name }}</td>
                     <td class="px-4 py-2 text-center tnum">{{ $line->ordered_qty }}</td>
                     <td class="px-4 py-2 text-center">
-                        @if($receipt->status !== 'done')
+                        @if($receipt->status !== 'done' && auth()->user()->canEdit())
                         <input type="number" name="lines[{{ $line->id }}][received_qty]"
                             min="0" max="{{ $line->ordered_qty }}" value="{{ $line->received_qty ?: $line->ordered_qty }}"
                             class="w-14 border border-gray-300 rounded px-1 py-0.5 text-center focus:outline-none focus:ring-1 focus:ring-[#714B67]">
                         @else
-                        <span class="tnum">{{ $line->received_qty }}</span>
+                        <span class="tnum">{{ $line->received_qty ?: $line->ordered_qty }}</span>
                         @endif
                     </td>
                     <td class="px-4 py-2 text-center">
-                        @if($receipt->status !== 'done')
+                        @if($receipt->status !== 'done' && auth()->user()->canEdit())
                         <input type="number" name="lines[{{ $line->id }}][accepted_qty]"
                             min="0" max="{{ $line->ordered_qty }}" value="{{ $line->accepted_qty ?: $line->ordered_qty }}"
                             class="w-14 border border-gray-300 rounded px-1 py-0.5 text-center focus:outline-none focus:ring-1 focus:ring-[#714B67] border-green-300">
                         @else
-                        <span class="tnum font-medium text-green-700">{{ $line->accepted_qty }}</span>
+                        <span class="tnum font-medium text-green-700">{{ $line->accepted_qty ?: $line->ordered_qty }}</span>
                         @endif
                     </td>
                     <td class="px-4 py-2 text-center tnum {{ $line->rejected_qty > 0 ? 'text-red-600 font-medium' : 'text-gray-400' }}">
                         {{ $line->rejected_qty ?: '—' }}
                     </td>
                     <td class="px-4 py-2">
-                        @if($receipt->status !== 'done')
+                        @if($receipt->status !== 'done' && auth()->user()->canEdit())
                         <div class="flex items-center gap-1">
                             <input type="text" name="lines[{{ $line->id }}][lot_id_override]"
                                 placeholder="LOT-xxx"

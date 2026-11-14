@@ -68,6 +68,7 @@
         </div>
 
         {{-- Actions --}}
+        @if(auth()->user()->canEdit())
         @if($order->status === 'rfq')
         <div class="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
             <form method="POST" action="{{ route('purchase.orders.confirm', $order->id) }}">
@@ -94,6 +95,7 @@
                 + Buat Receipt (GR)
             </a>
         </div>
+        @endif
         @endif
     </div>
 

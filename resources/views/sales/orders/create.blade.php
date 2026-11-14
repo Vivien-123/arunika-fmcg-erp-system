@@ -123,13 +123,13 @@
 </div>
 
 <script>
-const products = @json($products->map(fn($p) => [
+const products = {!! json_encode($products->map(fn($p) => [
     'variant_sku' => $p->variant_sku,
     'id'          => $p->id,
     'name'        => $p->name,
     'unit'        => $p->unit,
     'sales_price' => $p->sales_price,
-]));
+])) !!};
 
 let lineIdx = 0;
 

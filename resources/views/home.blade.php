@@ -14,6 +14,7 @@
         'Invoicing'  => ['url'=>route('accounting.invoices.index'), 'desc'=>'Invoice & Pembayaran',         'sub'=>'Customer Invoice, Credit Note'],
         'Employees'  => ['url'=>route('employees.index'),           'desc'=>'Pegawai & Departemen',         'sub'=>'Directory, Sign-off Control'],
         'Reporting'  => ['url'=>route('reporting.dashboard'),       'desc'=>'KPI, Audit & Testing',         'sub'=>'Dashboard, Audit, T-01..T-36'],
+        'Admin'      => ['url'=>route('admin.business-rules'),      'desc'=>'Business Rules & Role Matrix', 'sub'=>'SR Rules, CheckRole Matrix'],
         'Wireframes' => ['url'=>route('wireframes'),                'desc'=>'S-01 s/d S-18',                'sub'=>'All screen wireframes'],
     ];
     $allowedMenus = array_filter($allMenus, fn($key) => in_array($key, $menus), ARRAY_FILTER_USE_KEY);

@@ -49,7 +49,11 @@ class User extends Authenticatable
      */
     public function allowedMenus(): array
     {
-        if (in_array($this->role, ['Owner', 'MasterAdmin'])) {
+        if ($this->role === 'MasterAdmin') {
+            return ['Sales', 'CRM', 'Purchase', 'Inventory', 'Accounting', 'Invoicing', 'Employees', 'Reporting', 'Admin', 'Wireframes'];
+        }
+
+        if ($this->role === 'Owner') {
             return ['Sales', 'CRM', 'Purchase', 'Inventory', 'Accounting', 'Invoicing', 'Employees', 'Reporting', 'Wireframes'];
         }
 
@@ -110,6 +114,9 @@ class User extends Authenticatable
             ],
             'Wireframes' => [
                 ['label' => 'S-01..S-18 Wireframes', 'route' => 'wireframes', 'icon' => 'grid'],
+            ],
+            'Admin' => [
+                ['label' => 'Business Rules (SR)', 'route' => 'admin.business-rules', 'icon' => 'shield'],
             ],
         ];
     }

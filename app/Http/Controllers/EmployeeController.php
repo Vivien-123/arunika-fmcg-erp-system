@@ -47,7 +47,7 @@ class EmployeeController extends Controller
     /** Toggle Aktif/Nonaktif — HR only (SR-18, T-30) */
     public function toggleStatus(Request $request, string $id)
     {
-        if (!auth()->user()->isHR()) abort(403, 'Hanya HR yang dapat mengubah status pegawai.');
+        if (!auth()->user()->isHR() && !auth()->user()->isMasterAdmin()) abort(403, 'Hanya HR atau Master Admin yang dapat mengubah status pegawai.');
 
         $employee  = Employee::findOrFail($id);
         $oldStatus = $employee->status;

@@ -771,8 +771,9 @@ class RunFmcgMasterSeed extends Command
             ['id' => 6, 'name' => 'Rita Kusuma',     'username' => 'purchase_user',  'email' => 'purchase_user@arunika.test',  'password' => $pw, 'role' => 'Purchase',  'created_at' => $now, 'updated_at' => $now],
             ['id' => 7, 'name' => 'Melati Yusuf',    'username' => 'hr_user',        'email' => 'hr_user@arunika.test',        'password' => $pw, 'role' => 'HR',        'created_at' => $now, 'updated_at' => $now],
             ['id' => 8, 'name' => 'Hendra Widodo',   'username' => 'owner_user',     'email' => 'owner_user@arunika.test',     'password' => $pw, 'role' => 'Owner',     'created_at' => $now, 'updated_at' => $now],
+            ['id' => 9, 'name' => 'Master Administrator', 'username' => 'master_admin', 'email' => 'master_admin@arunika.test', 'password' => $pw, 'role' => 'MasterAdmin', 'created_at' => $now, 'updated_at' => $now],
         ]);
-        $this->line('   seeded   users (8 rows — password: Demo2026!)');
+        $this->line('   seeded   users (9 rows — password: Demo2026!)');
 
         // ── 3.5  Employees ────────────────────────────────────────────────
         DB::table('employees')->insert([

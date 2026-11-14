@@ -72,7 +72,7 @@
             <h2 class="text-sm font-semibold text-gray-700">Delivery Lines</h2>
         </div>
 
-        @if($delivery->status !== 'done')
+        @if($delivery->status !== 'done' && auth()->user()->canEdit())
         <form method="POST" action="{{ route('inventory.deliveries.validate', $delivery->id) }}" id="validateForm">
             @csrf
         @endif
@@ -97,13 +97,13 @@
                     <td class="px-4 py-2 text-gray-700">{{ $line->product_name }}</td>
                     <td class="px-4 py-2 text-center tnum">{{ $line->demand_qty }}</td>
                     <td class="px-4 py-2 text-center">
-                        @if($delivery->status !== 'done')
+                        @if($delivery->status !== 'done' && auth()->user()->canEdit())
                         <input type="number" name="done_qties[{{ $line->id }}]"
                             min="0" max="{{ $si ? $si['available'] : $line->demand_qty }}"
                             value="{{ $line->done_qty ?: $line->demand_qty }}"
                             class="w-16 border border-gray-300 rounded px-1 py-0.5 text-center focus:outline-none focus:ring-1 focus:ring-[#714B67]">
                         @else
-                        <span class="tnum font-medium text-green-700">{{ $line->done_qty }}</span>
+                        <span class="tnum font-medium text-green-700">{{ $line->done_qty ?: $line->demand_qty }}</span>
                         @endif
                     </td>
                     <td class="px-4 py-2 text-center tnum text-amber-600">{{ $line->backorder_qty ?: '—' }}</td>
@@ -125,7 +125,7 @@
             </tbody>
         </table>
 
-        @if($delivery->status !== 'done')
+        @if($delivery->status !== 'done' && auth()->user()->canEdit())
         {{-- Validator section inside the form --}}
         <div class="px-4 py-3 border-t border-gray-100 bg-gray-50 space-y-3">
             <h3 class="text-xs font-semibold text-gray-600">Sign-off Validator (SR-17/SR-18)</h3>
@@ -244,10 +244,12 @@
             <input type="hidden" name="lines[{{ $i }}][so_line_id]"    value="{{ $soLine?->id ?? '' }}">
             @endforeach
 
+            @if(auth()->user()->canEdit())
             <button type="submit"
                 class="bg-[#714B67] text-white text-xs font-semibold px-5 py-2 rounded hover:bg-[#5a3a52] transition">
                 📄 Buat Customer Invoice
             </button>
+            @endif
         </form>
     </div>
     @else

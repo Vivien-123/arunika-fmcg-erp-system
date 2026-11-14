@@ -4,9 +4,11 @@
     $currentApp  = 'Sales';
     $sidebarMenu = [
         ['label'=>'Semua SO',    'url'=>route('sales.orders.index'),  'icon'=>'📋'],
-        ['label'=>'Buat Quotation','url'=>route('sales.orders.create'),'icon'=>'➕'],
-        ['label'=>'CRM Pipeline','url'=>route('crm.leads.index'),     'icon'=>'🎯'],
     ];
+    if (auth()->user()->canEdit()) {
+        $sidebarMenu[] = ['label'=>'Buat Quotation','url'=>route('sales.orders.create'),'icon'=>'➕'];
+    }
+    $sidebarMenu[] = ['label'=>'CRM Pipeline','url'=>route('crm.leads.index'),     'icon'=>'🎯'];
     $statusColors = [
         'draft'      => 'bg-gray-100 text-gray-600',
         'to_approve' => 'bg-yellow-100 text-yellow-700',
@@ -32,9 +34,11 @@
             <h1 class="page-title">Sales Orders</h1>
             <p class="page-sub">F-05 Quotation → Confirmed · F-06 Diskon · F-10 Credit limit · SR-12 Price lock</p>
         </div>
+        @if(auth()->user()->canEdit())
         <a href="{{ route('sales.orders.create') }}" class="btn-primary text-xs flex items-center gap-1.5">
             + Buat Quotation
         </a>
+        @endif
     </div>
 
     @if(session('success'))

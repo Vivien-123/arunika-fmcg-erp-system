@@ -236,8 +236,8 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/receipts/{id}/validate', [\App\Http\Controllers\Inventory\ReceiptController::class, 'validateReceipt'])->name('receipts.validate');
         });
 
-        // Internal Transfer (F-17, SR-14) — Warehouse, Owner
-        Route::middleware('role:Warehouse,Owner')->group(function () {
+        // Internal Transfer (F-17, SR-14) — Warehouse, Owner, MasterAdmin
+        Route::middleware('role:Warehouse,Owner,MasterAdmin')->group(function () {
             Route::get('/transfer', function () {
                 $stocks = \App\Models\OpeningStock::with('product')->orderBy('variant_sku')->get();
                 return view('inventory.transfer', compact('stocks'));

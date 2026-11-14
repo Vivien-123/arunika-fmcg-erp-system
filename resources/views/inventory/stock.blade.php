@@ -11,7 +11,9 @@
     <input type="text" placeholder="Cari SKU atau nama produk..." class="text-xs border border-gray-300 rounded px-3 py-1 w-48 focus:outline-none focus:border-[#714B67]">
     <button class="text-xs text-gray-600 border border-gray-300 rounded px-3 py-1 hover:bg-gray-50 transition">Filters ▾</button>
     <button class="text-xs text-gray-600 border border-gray-300 rounded px-3 py-1 hover:bg-gray-50 transition">Group By ▾</button>
-    <button class="text-xs bg-[#714B67] text-white rounded px-3 py-1 hover:bg-[#5E3D56] transition font-medium">+ Transfer</button>
+    @if(auth()->user()->canEdit())
+    <a href="{{ route('inventory.transfer') }}" class="text-xs bg-[#714B67] text-white rounded px-3 py-1 hover:bg-[#5E3D56] transition font-medium">+ Transfer</a>
+    @endif
 @endsection
 
 @section('content')

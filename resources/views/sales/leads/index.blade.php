@@ -4,8 +4,10 @@
     $currentApp  = 'CRM';
     $sidebarMenu = [
         ['label'=>'Pipeline',  'url'=>route('crm.leads.index'),      'icon'=>'📋'],
-        ['label'=>'Buat Lead', 'url'=>route('crm.leads.index').'#new', 'icon'=>'➕'],
     ];
+    if (auth()->user()->canEdit()) {
+        $sidebarMenu[] = ['label'=>'Buat Lead', 'url'=>route('crm.leads.index').'#new', 'icon'=>'➕'];
+    }
 @endphp
 
 @section('breadcrumb')
@@ -109,6 +111,7 @@
     </div>
 
     {{-- Buat Lead baru --}}
+    @if(auth()->user()->canEdit())
     <div class="mt-6 bg-white border rounded-xl p-5" id="new">
         <h2 class="font-semibold text-gray-700 mb-3">➕ Buat Lead Baru</h2>
         <form method="POST" action="{{ route('crm.leads.store') }}" class="flex flex-wrap gap-3 items-end">
@@ -132,6 +135,7 @@
             </button>
         </form>
     </div>
+    @endif
 
     {{-- ⑤ Log Notes hint --}}
     <div class="mt-3 text-xs text-gray-400 italic">

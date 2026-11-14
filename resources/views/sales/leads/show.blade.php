@@ -75,6 +75,7 @@
 
         {{-- Action buttons --}}
         <div class="px-5 py-3 border-t bg-gray-50 flex flex-wrap gap-2">
+            @if(auth()->user()->canEdit())
             @if($lead->stage === 'new')
             <form method="POST" action="{{ route('crm.leads.convert', $lead->id) }}">
                 @csrf
@@ -96,6 +97,7 @@
                     🗑 Hapus Pelanggan (T-08 test)
                 </button>
             </form>
+            @endif
             @endif
 
             <a href="{{ route('crm.leads.index') }}" class="text-gray-500 text-sm px-3 py-1.5 hover:underline">
