@@ -31,9 +31,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/employees', [EmployeeController::class, 'index'])
          ->name('employees.index')->middleware('role:HR,Owner,MasterAdmin');
 
-    Route::get('/employees/defense', fn() => view('employees.defense'))
-         ->name('employees.defense')->middleware('role:Owner,MasterAdmin');
-
     Route::get('/employees/{id}', [EmployeeController::class, 'show'])->name('employees.show');
     Route::post('/employees/{id}/toggle-status', [EmployeeController::class, 'toggleStatus'])
          ->name('employees.toggleStatus')->middleware('role:HR,MasterAdmin');

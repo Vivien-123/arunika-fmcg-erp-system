@@ -129,7 +129,6 @@ class User extends Authenticatable
             ],
             'Employees' => [
                 ['label' => 'Employee Directory', 'route' => 'employees.index', 'icon' => 'users'],
-                ['label' => 'Defense Prep',       'route' => 'employees.defense', 'icon' => 'shield'],
             ],
             'Reporting' => [
                 ['label' => 'Dashboard',  'route' => 'reporting.dashboard', 'icon' => 'chart'],

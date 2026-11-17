@@ -238,8 +238,7 @@
             'Employees' => [
                 'title' => 'Employees',
                 'items' => [
-                    ['label'=>'Employee Directory', 'url'=>route('employees.index'),   'match'=>'employees'],
-                    ['label'=>'Defense Prep',       'url'=>route('employees.defense'), 'match'=>'employees/defense'],
+                    ['label'=>'Employee Directory', 'url'=>route('employees.index'), 'match'=>'employees'],
                 ],
             ],
             'Reporting' => [
@@ -269,12 +268,6 @@
                     ['label'=>'Profil Saya', 'url'=>route('employees.me'), 'match'=>'employees'],
                 ],
             ];
-        } elseif (!$user->isMasterAdmin() && !$user->isOwner()) {
-            // HR tidak membuka Defense Prep (khusus Owner & MasterAdmin)
-            $moduleSidebarItems['Employees']['items'] = array_values(array_filter(
-                $moduleSidebarItems['Employees']['items'],
-                fn($it) => $it['label'] !== 'Defense Prep'
-            ));
         }
 
         // Owner is strictly view-only: remove create/action options from sidebar
