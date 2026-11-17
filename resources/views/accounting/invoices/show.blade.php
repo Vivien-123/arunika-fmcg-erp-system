@@ -97,7 +97,7 @@
     @if($invoice->journalEntries->count() > 0)
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-4">
         <div class="px-4 py-3 border-b border-gray-100 bg-gray-50/80">
-            <h3 class="font-semibold text-gray-700 text-sm">Journal Entries (F-14)</h3>
+            <h3 class="font-semibold text-gray-700 text-sm">Journal Entries</h3>
         </div>
         <table class="w-full text-xs">
             <thead class="bg-gray-50"><tr>
@@ -126,7 +126,7 @@
     @if($auditLogs->count() > 0)
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="px-4 py-3 border-b border-gray-100 bg-gray-50/80">
-            <h3 class="font-semibold text-gray-700 text-sm">Log Audit (F-21)</h3>
+            <h3 class="font-semibold text-gray-700 text-sm">Log Audit</h3>
         </div>
         <div class="divide-y divide-gray-50">
             @foreach($auditLogs->take(5) as $log)

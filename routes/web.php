@@ -24,8 +24,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/wireframes', fn() => view('wireframes.index'))->name('wireframes');
 
     // ── Employees (M3) ────────────────────────────────────────────────
-    Route::get('/employees', [EmployeeController::class, 'index'])->name('employees.index');
-    Route::get('/employees/defense', fn() => view('employees.defense'))->name('employees.defense');
+    // Profil milik user yang login (semua role boleh) — harus di atas /employees/{id}
+    Route::get('/employees/me', [EmployeeController::class, 'me'])->name('employees.me');
+
+    // Direktori pegawai: MasterAdmin, Owner, HR
+    Route::get('/employees', [EmployeeController::class, 'index'])
+         ->name('employees.index')->middleware('role:HR,Owner,MasterAdmin');
+
+    Route::get('/employees/defense', fn() => view('employees.defense'))
+         ->name('employees.defense')->middleware('role:Owner,MasterAdmin');
+
     Route::get('/employees/{id}', [EmployeeController::class, 'show'])->name('employees.show');
     Route::post('/employees/{id}/toggle-status', [EmployeeController::class, 'toggleStatus'])
          ->name('employees.toggleStatus')->middleware('role:HR,MasterAdmin');
@@ -33,15 +41,14 @@ Route::middleware(['auth'])->group(function () {
          ->name('employees.validateSignOff');
 
     // ── Reporting / Audit (M3-W3-04 · F-21 · S-18) ───────────────────────
-    Route::get('/reporting/audit', [AuditController::class, 'index'])
-         ->name('reporting.audit');
-    Route::get('/reporting/audit/{docType}/{docId}', [AuditController::class, 'show'])
-         ->name('reporting.audit.show')
-         ->where('docId', '.*');
-
-    // ── M3-W4-01: Test Results T-01, T-02, T-27–T-30 ────────────────────
-    Route::get('/reporting/test-results', fn() => view('reporting.test-results-m3'))
-         ->name('reporting.test-results');
+    // Audit trail hanya untuk MasterAdmin & Owner (portal user lain tidak punya akses).
+    Route::middleware('role:MasterAdmin,Owner')->group(function () {
+        Route::get('/reporting/audit', [AuditController::class, 'index'])
+             ->name('reporting.audit');
+        Route::get('/reporting/audit/{docType}/{docId}', [AuditController::class, 'show'])
+             ->name('reporting.audit.show')
+             ->where('docId', '.*');
+    });
 
     // ── Operational Dashboard (F-20, S-17, SR-19) ──────────────────────
     Route::get('/reporting/dashboard', function () {
@@ -86,6 +93,39 @@ Route::middleware(['auth'])->group(function () {
         ));
     })->name('reporting.dashboard');
 
+    // Export CSV ringkasan stok dashboard (SR-19: angka dari dokumen posted)
+    Route::get('/reporting/dashboard/export', function () {
+        $stocks  = \App\Models\OpeningStock::with('product')->orderBy('variant_sku')->get();
+        $now     = now();
+        $name    = 'arunika-stock-snapshot-' . $now->format('Ymd-His') . '.csv';
+
+        return response()->streamDownload(function () use ($stocks, $now) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['Snapshot', $now->format('d/m/Y H:i')]);
+            fputcsv($out, []);
+            fputcsv($out, ['SKU', 'Produk', 'Unit', 'WH-JKT', 'HUB-BDG', 'Total', 'Reserved', 'Available', 'Cost (Rp)', 'Value (Rp)']);
+
+            foreach ($stocks as $s) {
+                fputcsv($out, [
+                    $s->variant_sku,
+                    $s->product?->name ?? '-',
+                    $s->product?->unit ?? '-',
+                    $s->wh_jkt_on_hand,
+                    $s->hub_bdg_on_hand,
+                    $s->company_total,
+                    $s->reserved,
+                    $s->company_total - $s->reserved,
+                    $s->standard_cost,
+                    $s->standard_value,
+                ]);
+            }
+
+            fputcsv($out, []);
+            fputcsv($out, ['TOTAL', '', '', $stocks->sum('wh_jkt_on_hand'), $stocks->sum('hub_bdg_on_hand'), $stocks->sum('company_total'), $stocks->sum('reserved'), $stocks->sum('company_total') - $stocks->sum('reserved'), '', $stocks->sum('standard_value')]);
+            fclose($out);
+        }, $name, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    })->name('reporting.dashboard.export');
+
     // ── Master Admin & Business Rules (SR-01..SR-22) ──────────────────
     Route::get('/admin/business-rules', function () {
         $businessRules = [
@@ -112,17 +152,25 @@ Route::middleware(['auth'])->group(function () {
             ['id'=>'SR-21','name'=>'Unit price PO terkunci setelah Confirmed','stakeholder'=>'Rita Kusuma (Pengadaan)','module'=>'Purchase','status'=>'Active','action'=>'Unit price read-only setelah PO Confirmed'],
             ['id'=>'SR-22','name'=>'Available = On Hand − Reserved, reserved ≤ On Hand','stakeholder'=>'Sari Prameswari (Gudang)','module'=>'Inventory','status'=>'Active','action'=>'Computed field, guard per lokasi'],
         ];
-        $roleMatrix = [
-            ['role'=>'Sales','sales'=>'✅','purchase'=>'❌','inventory'=>'view','accounting'=>'❌','employees'=>'view','audit'=>'own'],
-            ['role'=>'Purchase','sales'=>'❌','purchase'=>'✅','inventory'=>'✅','accounting'=>'❌','employees'=>'view','audit'=>'own'],
-            ['role'=>'Warehouse','sales'=>'❌','purchase'=>'❌','inventory'=>'✅ full','accounting'=>'❌','employees'=>'view','audit'=>'own'],
-            ['role'=>'Finance','sales'=>'❌','purchase'=>'❌','inventory'=>'❌','accounting'=>'✅','employees'=>'view','audit'=>'✅ full'],
-            ['role'=>'HR','sales'=>'❌','purchase'=>'❌','inventory'=>'❌','accounting'=>'❌','employees'=>'✅ full+private','audit'=>'own'],
-            ['role'=>'Owner','sales'=>'✅','purchase'=>'✅','inventory'=>'✅','accounting'=>'✅','employees'=>'✅','audit'=>'✅ full'],
-        ];
         $userAccounts = \App\Models\User::with('employee')->orderBy('role')->get();
-        return view('admin.business-rules', compact('businessRules','roleMatrix','userAccounts'));
+        return view('admin.business-rules', compact('businessRules','userAccounts'));
     })->name('admin.business-rules');
+
+    // Catat alasan perubahan business rule ke audit trail (dipakai modal Confirm)
+    Route::post('/admin/business-rules/{ruleId}/note', function (\Illuminate\Http\Request $request, string $ruleId) {
+        $request->validate(['change_reason' => 'required|string|min:10']);
+
+        \App\Models\AuditLog::record(
+            'business_rule',
+            $ruleId,
+            'change_reason_logged',
+            auth()->user()->username ?? auth()->user()->email,
+            $request->change_reason
+        );
+
+        return redirect()->route('admin.business-rules')
+            ->with('success', "Alasan perubahan {$ruleId} tercatat di audit trail.");
+    })->name('admin.business-rules.note')->middleware('role:MasterAdmin');
 
     // ── Inventory & Stock Verification (S-03, S-06, S-07, S-09) ───────
     Route::get('/inventory/stock', function () {
@@ -176,11 +224,17 @@ Route::middleware(['auth'])->group(function () {
             ['id'=>'T-35','module'=>'M4','name'=>'PO00007 Related Docs & Smart Buttons (F-21)','category'=>'Audit & Idempotency','status'=>'pass'],
             ['id'=>'T-36','module'=>'M4','name'=>'Receipt Re-validate Idempotent (SR-16)','category'=>'Audit & Idempotency','status'=>'pass'],
         ];
-        $passed = collect($tests)->where('status','pass')->count();
+        $tests = array_map(static function (array $test): array {
+            $test['status'] = 'not_run';
+            return $test;
+        }, $tests);
+        $tests = collect($tests);
+        $passed = $tests->where('status', 'pass')->count();
+        $failed = $tests->where('status', 'fail')->count();
+        $blocked = $tests->where('status', 'blocked')->count();
         $total = count($tests);
-        $tests = collect($tests); // convert to collection for groupBy in view
-        return view('reporting.testing', compact('tests','passed','total'));
-    })->name('reporting.testing');
+        return view('reporting.testing', compact('tests','passed','failed','blocked','total'));
+    })->name('reporting.testing')->middleware('role:MasterAdmin');
 
     // ── CRM / Leads (M1 · F-04 · S-04 · T-07, T-08) ─────────────────────
     Route::middleware('role:Sales,Owner,MasterAdmin')->prefix('crm')->name('crm.')->group(function () {
@@ -239,6 +293,10 @@ Route::middleware(['auth'])->group(function () {
         // Internal Transfer (F-17, SR-14) — Warehouse, Owner, MasterAdmin
         Route::middleware('role:Warehouse,Owner,MasterAdmin')->group(function () {
             Route::get('/transfer', function () {
+                if (!auth()->user()->canEdit()) {
+                    return redirect()->route('inventory.stock')
+                        ->with('error', 'Role Anda hanya dapat melihat data (view-only). Internal Transfer tidak diizinkan.');
+                }
                 $stocks = \App\Models\OpeningStock::with('product')->orderBy('variant_sku')->get();
                 return view('inventory.transfer', compact('stocks'));
             })->name('transfer');

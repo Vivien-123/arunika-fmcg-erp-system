@@ -35,6 +35,12 @@ class DeliveryController extends Controller
 
     public function create(Request $request)
     {
+        // Owner = read-only: form pembuatan DO tidak boleh dibuka.
+        if (!auth()->user()->canEdit()) {
+            return redirect()->route('inventory.deliveries.index')
+                ->with('error', 'Role Anda hanya dapat melihat data (view-only). Pembuatan Delivery Order tidak diizinkan.');
+        }
+
         $soId         = $request->get('so_id');
         $so           = $soId ? SalesOrder::with('lines.product')->findOrFail($soId) : null;
         $confirmedSOs = SalesOrder::where('status', 'confirmed')->orderByDesc('created_at')->get();
@@ -44,6 +50,8 @@ class DeliveryController extends Controller
 
     public function store(Request $request)
     {
+        abort_if(!auth()->user()->canEdit(), 403, 'Role Anda hanya dapat melihat data (view-only).');
+
         $request->validate(['sales_order_id' => 'required|exists:sales_orders,id']);
         try {
             $delivery = $this->inventoryService->createDelivery(
@@ -77,6 +85,8 @@ class DeliveryController extends Controller
 
     public function validateDelivery(Request $request, string $id)
     {
+        abort_if(!auth()->user()->canEdit(), 403, 'Role Anda hanya dapat melihat data (view-only).');
+
         $request->validate([
             'validator_employee_id' => 'required|exists:employees,id',
         ]);

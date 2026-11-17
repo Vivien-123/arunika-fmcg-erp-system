@@ -63,10 +63,10 @@
         <div class="bg-white rounded-lg border border-gray-200 p-4">
             <p class="text-sm text-gray-600 mb-3">
                 Membuat Goods Receipt <strong>GR00xxx</strong> dalam status <span class="text-gray-500 font-medium">Draft</span>.
-                Setelah dibuat, isi qty yang diterima dan accepted, lalu validasi dengan employee Warehouse aktif (SR-17).
+                Setelah dibuat, isi jumlah barang yang diterima dan disetujui, lalu validasi dengan karyawan gudang aktif.
             </p>
             <div class="bg-blue-50 border border-blue-200 rounded p-2 text-xs text-blue-700">
-                ℹ️ SR-06: Hanya <strong>accepted_qty</strong> yang menambah stok. Qty yang ditolak tidak dihitung.
+                ℹ️ Hanya jumlah barang yang disetujui yang akan menambah stok. Barang yang ditolak tidak dihitung.
             </div>
         </div>
 

@@ -143,7 +143,7 @@
         <div class="px-4 py-3 bg-gray-50 border-b flex items-center justify-between">
             <h3 class="text-xs font-semibold text-gray-600 uppercase tracking-wide">
                 ④ Riwayat Aksi — {{ $docId }}
-                <span class="font-normal text-gray-400 ml-1">(F-21 · SR-16 · SR-19)</span>
+                <span class="font-normal text-gray-400 ml-1">Riwayat aktivitas</span>
             </h3>
             <span class="text-xs text-gray-400">{{ $logs->count() }} entri</span>
         </div>
@@ -190,7 +190,7 @@
     @if(count($related))
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4">
         <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-            ⑤ Related Documents — Smart Buttons (F-21 · T-35)
+            Dokumen Terkait
         </h4>
         <div class="flex flex-wrap gap-3">
             @foreach($related as $relType => $relCount)
@@ -206,10 +206,6 @@
             </div>
             @endforeach
         </div>
-        <p class="text-[10px] text-gray-400 mt-3 italic">
-            T-35: PO00007 → Receipt = 0, Bill = 0 (seed baseline, AP Rp700.000 tetap).
-            T-36: Re-validasi setelah Done → diblokir idempotent (SR-16).
-        </p>
     </div>
     @endif
 

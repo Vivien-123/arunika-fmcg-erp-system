@@ -83,5 +83,7 @@ php artisan m2:w3-checkpoint
 |-----|------|-----|
 | FEFO hanya proses 1 lot (SR-07) | `InventoryService.php` | Iterasi semua lot dalam urutan FEFO |
 | StockMove key collision multi-line (SR-16) | `InventoryService.php` | Tambah `line->id` ke idempotency key |
+| 500 di halaman detail DO & GR (parse error) | `inventory/deliveries/show.blade.php`, `inventory/receipts/show.blade.php` | Hapus `use App\Models\...` di dalam blok `@php` (tidak valid di file view ter-compile) → pakai FQCN |
+| Tombol "Buat Customer Invoice" dari DO selalu gagal validasi | `Invoice::normalizePaymentTerms()` + 2 view di atas | Payment terms SO berupa teks bebas ("30 hari", "Tunai") dipetakan ke enum `CASH\|NET14\|NET30` sebelum dikirim |
 
 Detail lengkap: `docs/M2-W3-05_CodeReviewLogikaAI.md`

@@ -37,6 +37,31 @@ class User extends Authenticatable
 
     public function hasRole(string $role): bool { return $this->role === $role; }
 
+    /**
+     * Siapa yang boleh membuka direktori pegawai (semua karyawan).
+     * Selain role di bawah ini, pengguna hanya boleh melihat profilnya sendiri.
+     */
+    public function canViewEmployeeDirectory(): bool
+    {
+        return in_array($this->role, ['MasterAdmin', 'Owner', 'HR'], true);
+    }
+
+    /**
+     * Audit trail (Reporting > Audit Log) hanya untuk MasterAdmin & Owner.
+     * Portal user lain (Sales, Purchase, Warehouse, Finance, HR) tidak punya akses.
+     */
+    public function canViewAuditLog(): bool
+    {
+        return in_array($this->role, ['MasterAdmin', 'Owner'], true);
+    }
+
+    /** Boleh melihat profil pegawai tertentu? (direktori ATAU profil sendiri) */
+    public function canViewEmployee(\App\Models\Employee $employee): bool
+    {
+        return $this->canViewEmployeeDirectory()
+            || ($employee->mapped_user_id !== null && (int) $employee->mapped_user_id === (int) $this->id);
+    }
+
     public function canSignOffWarehouse(): bool
     {
         return in_array($this->role, ['Warehouse', 'MasterAdmin']);
@@ -107,10 +132,8 @@ class User extends Authenticatable
                 ['label' => 'Defense Prep',       'route' => 'employees.defense', 'icon' => 'shield'],
             ],
             'Reporting' => [
-                ['label' => 'Dashboard',          'route' => 'reporting.dashboard',    'icon' => 'chart'],
-                ['label' => 'Audit Trail',         'route' => 'reporting.audit',       'icon' => 'shield'],
-                ['label' => 'Integration Testing', 'route' => 'reporting.testing',     'icon' => 'check'],
-                ['label' => 'Test Results M3',     'route' => 'reporting.test-results','icon' => 'doc'],
+                ['label' => 'Dashboard',  'route' => 'reporting.dashboard', 'icon' => 'chart'],
+                ['label' => 'Audit Log',  'route' => 'reporting.audit',     'icon' => 'shield'],
             ],
             'Wireframes' => [
                 ['label' => 'S-01..S-18 Wireframes', 'route' => 'wireframes', 'icon' => 'grid'],

@@ -11,7 +11,6 @@
 <div class="max-w-6xl mx-auto px-2">
     <div class="mb-5">
         <h1 class="text-xl font-bold text-gray-800">General Ledger / Journal Entries</h1>
-        <p class="text-xs text-gray-400 mt-0.5">S-13 · F-14 · SR-16: Setiap entry idempotent</p>
     </div>
 
     {{-- Filter --}}

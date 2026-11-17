@@ -9,7 +9,7 @@
     <div class="mb-5">
         <p class="text-xs text-gray-400 mb-1"><a href="{{ route('accounting.invoices.index') }}" class="hover:underline">Customer Invoices</a> › Buat Baru</p>
         <h1 class="text-xl font-bold text-gray-800">Buat Customer Invoice</h1>
-        <p class="text-xs text-gray-400 mt-0.5">F-09 · SR-02: Invoice hanya untuk qty yang sudah Done di Delivery</p>
+        <p class="text-xs text-gray-400 mt-0.5">Tagihkan barang yang telah selesai dikirim.</p>
     </div>
 
     @if($errors->any())
@@ -46,7 +46,7 @@
 
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
             <h3 class="font-semibold text-gray-700 text-sm mb-1">Baris Invoice</h3>
-            <p class="text-[11px] text-orange-500 mb-3">⚠ SR-02: Qty invoice = Delivered Qty − Already Invoiced Qty</p>
+            <p class="text-[11px] text-orange-500 mb-3">Jumlah tagihan mengikuti barang yang sudah dikirim dan belum ditagihkan.</p>
             <div id="lines">
                 <div class="grid grid-cols-6 gap-2 mb-2 line-row">
                     <input name="lines[0][product_id]"   value="P01"              placeholder="Product ID"    class="text-xs border border-gray-200 rounded-lg px-2 py-1.5" required>

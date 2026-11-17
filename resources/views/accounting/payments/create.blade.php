@@ -9,7 +9,6 @@
 <div class="max-w-lg mx-auto px-2">
     <div class="mb-5">
         <h1 class="text-xl font-bold text-gray-800">Register Payment</h1>
-        <p class="text-xs text-gray-400 mt-0.5">S-12 · F-15 · SR-20: Pembayaran ≤ Outstanding</p>
     </div>
 
     @if($errors->any())
@@ -29,7 +28,7 @@
             </div>
         </div>
         <div class="bg-orange-50 border border-orange-200 rounded-lg px-3 py-2 text-[11px] text-orange-700">
-            ⚠ SR-20: Maksimum pembayaran = Rp{{ number_format($invoice->outstandingAmount(),0,',','.') }}
+            ⚠ Pembayaran tidak boleh melebihi sisa tagihan Rp{{ number_format($invoice->outstandingAmount(),0,',','.') }}.
         </div>
     </div>
 

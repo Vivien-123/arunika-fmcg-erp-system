@@ -58,6 +58,10 @@ class SalesOrderController extends Controller
      */
     public function create()
     {
+        if (!auth()->user()->canEdit()) {
+            return redirect()->route('sales.orders.index')
+                ->with('error', 'Role Anda hanya dapat melihat data (view-only). Pembuatan Sales Order tidak diizinkan.');
+        }
         return view('sales.orders.create', [
             'customers' => Customer::orderBy('name')->get(),
             'products'  => Product::orderBy('name')->get(),

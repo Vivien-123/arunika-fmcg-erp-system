@@ -13,7 +13,6 @@
 <div class="max-w-4xl space-y-4">
     <div>
         <h1 class="text-lg font-semibold text-gray-800">Buat RFQ</h1>
-        <p class="text-xs text-gray-400 mt-0.5">Request for Quotation — harga dikunci saat konfirmasi (SR-21)</p>
     </div>
 
     <form method="POST" action="{{ route('purchase.orders.store') }}" id="rfqForm">
@@ -65,7 +64,7 @@
                 </tbody>
             </table>
 
-            <p class="text-[10px] text-gray-400">* Harga otomatis dari vendor pricelist. SR-21: harga dikunci saat PO dikonfirmasi.</p>
+            <p class="text-[10px] text-gray-400">* Harga mengikuti daftar harga vendor dan tidak dapat diubah setelah pesanan dikonfirmasi.</p>
         </div>
 
         <div class="flex gap-3 mt-3">

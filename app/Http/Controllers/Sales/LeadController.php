@@ -29,6 +29,10 @@ class LeadController extends Controller
     {
         $stage  = $request->input('stage');
         $search = $request->input('search');
+        $view   = $request->query('view', 'kanban');
+        if (!in_array($view, ['kanban', 'list', 'form'], true)) {
+            $view = 'kanban';
+        }
 
         $query = Lead::orderBy('id', 'desc');
 
@@ -56,6 +60,7 @@ class LeadController extends Controller
             'stages'     => $stages,
             'customers'  => Customer::orderBy('name')->get(),
             'filters'    => ['stage' => $stage, 'search' => $search],
+            'view'       => $view,
         ]);
     }
 

@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Wireframe S-01–S-18')
+@section('title','Wireframes')
 @php
     $currentApp  = 'Wireframes';
     $sidebarMenu = [['label'=>'Semua Wireframe','url'=>route('wireframes'),'icon'=>'🖼️']];
@@ -7,15 +7,11 @@
 
 @section('breadcrumb')
     <span class="mx-1 text-gray-400">›</span>
-    <span class="text-gray-700">Wireframe S-01–S-18</span>
+    <span class="text-gray-700">Wireframes</span>
 @endsection
 
 @section('content')
 <div class="max-w-5xl mx-auto space-y-4">
-
-    <div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm text-blue-800">
-        <strong>M3-W1-01</strong> · Draft wireframe S-01 s/d S-18 dengan struktur Odoo Web 17.0 (Search/Filters/Group By · View Switcher · Fields · Table/KPI · Related Docs + Log Notes).
-    </div>
 
     @php
     $screens = [
@@ -104,12 +100,8 @@
 
     @foreach($screens as [$sid,$title,$mod,$role,$feat,$owner,$fields,$headers,$rows,$stages,$current])
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div class="bg-gray-50 border-b px-4 py-2 flex items-center justify-between">
-            <div>
-                <span class="font-mono text-xs text-[#714B67] font-bold">{{ $sid }}</span>
-                <span class="ml-2 font-semibold text-sm text-gray-700">{{ $title }}</span>
-            </div>
-            <div class="text-xs text-gray-400">{{ $mod }} · {{ $role }} · {{ $feat }}</div>
+        <div class="bg-gray-50 border-b px-4 py-2">
+        <div class="font-semibold text-sm text-gray-700">{{ $title }}</div>
         </div>
         <div class="flex text-xs">
             <div class="w-28 border-r border-gray-100 py-2 flex-shrink-0">
@@ -119,22 +111,20 @@
             </div>
             <div class="flex-1 px-4 py-3">
                 <div class="flex items-center justify-between mb-2">
-                    <span class="font-semibold text-gray-700">① {{ $title }}</span>
-                    <span class="text-gray-400">Search · Filters · Group By</span>
+                    <span class="font-semibold text-gray-700">{{ $title }}</span>
                 </div>
                 <div class="flex items-center gap-1 mb-2 text-gray-400">
-                    <span>②</span>
                     @foreach(['List','Kanban','Form','Activity'] as $v)
                     <span class="px-1.5 py-0.5 rounded {{ $v==='Form' ? 'bg-[#714B67] text-white':'bg-gray-100' }}">{{ $v }}</span>
                     @endforeach
-                    @if($current) <span class="ml-2">| current: <strong>{{ $current }}</strong></span> @endif
+                    @if($current) <span class="ml-2"><strong>{{ $current }}</strong></span> @endif
                 </div>
                 @if(count($stages)>0)
                 <div class="mb-2"><x-status-bar :stages="$stages" :current="$current" /></div>
                 @endif
                 @if(count($fields)>0)
                 <div class="mb-2">
-                    <span class="text-gray-400">③ Fields:</span>
+                    <span class="text-gray-400">Fields</span>
                     <div class="grid grid-cols-2 gap-x-4 gap-y-1 mt-1 bg-gray-50 rounded p-2">
                         @foreach($fields as [$label,$value])
                         <div><span class="text-gray-400">{{ $label }}</span><div class="font-medium text-gray-800">{{ $value }}</div></div>
@@ -144,33 +134,17 @@
                 @endif
                 @if(count($headers)>0)
                 <div>
-                    <span class="text-gray-400">④ Detail / Kanban / KPIs</span>
+                    <span class="text-gray-400">Detail / Kanban / KPIs</span>
                     <table class="w-full mt-1 border border-gray-200 rounded">
                         <thead class="bg-gray-100"><tr>@foreach($headers as $h)<th class="text-left px-2 py-1 font-medium text-gray-500">{{ $h }}</th>@endforeach</tr></thead>
                         <tbody>@foreach($rows as $row)<tr class="border-t border-gray-100">@foreach($row as $cell)<td class="px-2 py-1 text-gray-700">{{ $cell }}</td>@endforeach</tr>@endforeach</tbody>
                     </table>
                 </div>
                 @endif
-                <div class="mt-2 pt-2 border-t border-gray-100 flex items-center gap-2 text-gray-400">
-                    <span>⑤ Related Docs</span><span>|</span><span>Log Notes</span><span>|</span><span>Audit / History</span>
-                </div>
             </div>
-        </div>
-        <div class="bg-amber-50 border-t border-amber-100 px-4 py-1.5 text-xs text-amber-700">
-            ⚠️ <strong>Wireframe {{ $sid }}</strong> · Owner: <strong>{{ $owner }}</strong>
-            @if(str_contains($owner,'✅')) · <a href="{{ $sid==='S-14' ? route('employees.index') : route('employees.show','E01') }}" class="underline">→ Lihat implementasi</a> @endif
         </div>
     </div>
     @endforeach
-
-    {{-- S-14 dan S-15 implemented --}}
-    <div class="bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-sm text-green-800 flex items-center gap-3">
-        <span>✅</span>
-        <div>
-            <strong>S-14 Employees dan Departments</strong> · <a href="{{ route('employees.index') }}" class="underline">Buka →</a><br>
-            <strong>S-15 Employee Form dan Validator</strong> · <a href="{{ route('employees.show','E01') }}" class="underline">Buka E01 →</a>
-        </div>
-    </div>
 
 </div>
 @endsection

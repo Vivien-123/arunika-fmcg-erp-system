@@ -1,18 +1,68 @@
 @extends('layouts.app')
-@section('title', 'Inventory & Stock Verification')
+@section('title', 'Inventory & Stock')
 @php $currentApp = 'Inventory'; @endphp
 
 @section('breadcrumb')
     <span class="mx-1 text-gray-300">/</span><span class="text-gray-400">Inventory &amp; Stock</span>
-    <span class="mx-1 text-gray-300">/</span><span class="text-gray-700 font-medium">Stock Overview (S-03, S-06, S-07)</span>
+    <span class="mx-1 text-gray-300">/</span><span class="text-gray-700 font-medium">Stock Overview</span>
 @endsection
 
 @section('control_panel_extra')
-    <input type="text" placeholder="Cari SKU atau nama produk..." class="text-xs border border-gray-300 rounded px-3 py-1 w-48 focus:outline-none focus:border-[#714B67]">
-    <button class="text-xs text-gray-600 border border-gray-300 rounded px-3 py-1 hover:bg-gray-50 transition">Filters ▾</button>
-    <button class="text-xs text-gray-600 border border-gray-300 rounded px-3 py-1 hover:bg-gray-50 transition">Group By ▾</button>
-    @if(auth()->user()->canEdit())
-    <a href="{{ route('inventory.transfer') }}" class="text-xs bg-[#714B67] text-white rounded px-3 py-1 hover:bg-[#5E3D56] transition font-medium">+ Transfer</a>
+    <input type="text" id="stockSearch" oninput="applyStockFilters()" placeholder="Cari SKU atau nama produk..."
+           class="text-xs border border-gray-300 rounded px-3 py-1 w-52 shrink-0 focus:outline-none focus:border-[#714B67]">
+
+    {{-- Filters --}}
+    <div class="relative shrink-0">
+        <button type="button" onclick="toggleStockPanel('filterPanel')"
+                class="text-xs text-gray-600 border border-gray-300 rounded px-3 py-1 hover:bg-gray-50 transition flex items-center gap-1 whitespace-nowrap">
+            Filters <span id="filterBadge" class="hidden bg-[#714B67] text-white text-[9px] font-bold w-4 h-4 rounded-full items-center justify-center">!</span>
+            <span class="text-[9px]">▾</span>
+        </button>
+        <div id="filterPanel" class="hidden absolute right-0 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-30 space-y-3 text-left">
+            <div>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1.5">Lokasi</p>
+                <select id="stockLocation" onchange="applyStockFilters()"
+                        class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:border-[#714B67]">
+                    <option value="">Semua lokasi</option>
+                    <option value="WH-JKT">WH-JKT (stok > 0)</option>
+                    <option value="HUB-BDG">HUB-BDG (stok > 0)</option>
+                </select>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1.5">Status stok</p>
+                <select id="stockStatus" onchange="applyStockFilters()"
+                        class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:border-[#714B67]">
+                    <option value="">Semua status</option>
+                    <option value="reserved">Ada reserved</option>
+                    <option value="free">Tanpa reserved</option>
+                    <option value="empty">Stok kosong</option>
+                </select>
+            </div>
+            <button type="button" onclick="resetStockFilters()"
+                    class="w-full text-xs text-red-600 border border-red-200 bg-red-50 rounded px-2 py-1.5 hover:bg-red-100 transition">
+                Reset filter
+            </button>
+        </div>
+    </div>
+
+    {{-- Group By --}}
+    <div class="relative shrink-0">
+        <button type="button" onclick="toggleStockPanel('groupPanel')"
+                class="text-xs text-gray-600 border border-gray-300 rounded px-3 py-1 hover:bg-gray-50 transition flex items-center gap-1 whitespace-nowrap">
+            Group By <span class="text-[9px]">▾</span>
+        </button>
+        <div id="groupPanel" class="hidden absolute right-0 mt-1 w-44 bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-30 text-left">
+            @foreach(['none'=>'Tanpa grup','sku'=>'SKU','name'=>'Nama produk','value'=>'Nilai stok','reserved'=>'Reserved'] as $val => $label)
+            <button type="button" onclick="setStockGroup('{{ $val }}')"
+                    class="w-full text-left text-xs px-2 py-1.5 rounded hover:bg-gray-50 transition stock-group-option" data-group="{{ $val }}">
+                {{ $label }}
+            </button>
+            @endforeach
+        </div>
+    </div>
+
+    @if(in_array(auth()->user()->role, ['Warehouse', 'MasterAdmin'], true))
+    <a href="#internal-transfer" class="text-xs bg-[#714B67] text-white rounded px-3 py-1 hover:bg-[#5E3D56] transition font-medium">+ Transfer</a>
     @endif
 @endsection
 
@@ -29,21 +79,18 @@
         <div class="bg-white rounded-lg border border-gray-200 p-4">
             <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wide mb-1">Stock Valuation</p>
             <span class="text-xl font-bold text-gray-800 tnum">Rp{{ number_format($stockValue) }}</span>
-            <p class="text-[10px] text-gray-400 mt-1">Perpetual standard cost · {{ $stocks->count() }} SKU</p>
         </div>
         <div class="bg-white rounded-lg border border-gray-200 p-4">
-            <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wide mb-1">Reserved (S00007)</p>
+            <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wide mb-1">Reserved</p>
             <span class="text-xl font-bold text-red-600 tnum">{{ $stocks->sum('reserved') }}</span>
-            <p class="text-[10px] text-gray-400 mt-1">SR-22: Available = On Hand - Reserved</p>
         </div>
         <div class="bg-white rounded-lg border border-gray-200 p-4">
             <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wide mb-1">Available</p>
             <span class="text-xl font-bold text-green-600 tnum">{{ $totalOnHand - $stocks->sum('reserved') }}</span>
-            <p class="text-[10px] text-gray-400 mt-1">Free to allocate</p>
         </div>
     </div>
 
-    {{-- Warehouse Location Cards (S-06) --}}
+    {{-- Warehouse location cards --}}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         @foreach($warehouses as $wh)
         @php $whTotal = $stocks->sum($wh->code === 'WH-JKT' ? 'wh_jkt_on_hand' : 'hub_bdg_on_hand'); @endphp
@@ -64,12 +111,11 @@
         @endforeach
     </div>
 
-    {{-- Baseline Stock Table (S-07) --}}
+    {{-- Stock table --}}
     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6">
         <div class="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
             <div>
-                <h2 class="text-sm font-semibold text-gray-700">Baseline Stock Matrix — 16 Variant SKU FMCG</h2>
-                <p class="text-xs text-gray-400 mt-0.5">SR-04: No negative stock · SR-22: Available = On Hand - Reserved</p>
+                <h2 class="text-sm font-semibold text-gray-700">Rincian Stok Produk</h2>
             </div>
         </div>
         <div class="overflow-x-auto">
@@ -88,10 +134,17 @@
                         <th class="text-right px-4 py-2">Value (Rp)</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-50">
+                <tbody id="stockRows" class="divide-y divide-gray-50">
                     @foreach($stocks as $stock)
                     @php $available = $stock->company_total - $stock->reserved; $hasRes = $stock->reserved > 0; @endphp
-                    <tr class="hover:bg-gray-50 transition {{ $hasRes ? 'bg-red-50/30' : '' }}">
+                    <tr class="hover:bg-gray-50 transition {{ $hasRes ? 'bg-red-50/30' : '' }}"
+                        data-sku="{{ $stock->variant_sku }}"
+                        data-name="{{ $stock->product?->name ?? '' }}"
+                        data-wh="{{ $stock->wh_jkt_on_hand }}"
+                        data-hub="{{ $stock->hub_bdg_on_hand }}"
+                        data-total="{{ $stock->company_total }}"
+                        data-reserved="{{ $stock->reserved }}"
+                        data-value="{{ $stock->standard_value }}">
                         <td class="px-4 py-2 text-xs mono text-gray-600">{{ $stock->variant_sku }}</td>
                         <td class="px-4 py-2 text-xs text-gray-800">{{ $stock->product?->name ?? '--' }}</td>
                         <td class="px-4 py-2 text-xs text-gray-500">{{ $stock->product?->unit ?? '--' }}</td>
@@ -124,7 +177,7 @@
     {{-- FEFO Lot Tracking (S-08) --}}
     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6">
         <div class="px-5 py-3 border-b border-gray-100 bg-gray-50">
-            <h2 class="text-sm font-semibold text-gray-700">FEFO Lot Tracking &amp; Expiry Panel (SR-09)</h2>
+            <h2 class="text-sm font-semibold text-gray-700">Pelacakan Lot dan Tanggal Kedaluwarsa</h2>
             <p class="text-xs text-gray-400 mt-0.5">First Expired First Out · Lot kedaluwarsa dilarang dikirim</p>
         </div>
         <div class="overflow-x-auto">
@@ -172,31 +225,148 @@
     </div>
 
     {{-- Internal Transfer Form (SR-14) --}}
-    <div class="bg-white rounded-lg border border-gray-200 p-5 mb-6">
-        <h2 class="text-sm font-semibold text-gray-700 mb-3">Internal Transfer (SR-14) — WH-JKT to HUB-BDG</h2>
-        <p class="text-xs text-gray-400 mb-4">Mengurangi WH-JKT, menambah HUB-BDG · Nilai stok total &amp; PPN tetap · SR-04: Tidak boleh melebihi Available</p>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-                <label class="text-xs text-gray-500 font-semibold">Source Location</label>
-                <select class="w-full mt-1 border border-gray-300 rounded px-3 py-1.5 text-sm"><option>WH-JKT — Gudang Utama Jakarta</option></select>
+    <div id="internal-transfer" class="bg-white rounded-lg border border-gray-200 p-5 mb-6">
+        <h2 class="text-sm font-semibold text-gray-700 mb-3">Transfer Antar Gudang</h2>
+
+        @if(in_array(auth()->user()->role, ['Warehouse', 'MasterAdmin'], true))
+        <form method="POST" action="{{ route('inventory.transfer.store') }}" class="space-y-4">
+            @csrf
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="text-xs text-gray-500 font-semibold">Source Location</label>
+                    <select name="from_location" required
+                            class="w-full mt-1 border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-[#714B67]">
+                        <option value="WH-JKT">WH-JKT — Gudang Utama Jakarta</option>
+                        <option value="HUB-BDG">HUB-BDG — Hub Distribusi Bandung</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-500 font-semibold">Destination</label>
+                    <select name="to_location" required
+                            class="w-full mt-1 border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-[#714B67]">
+                        <option value="HUB-BDG">HUB-BDG — Hub Distribusi Bandung</option>
+                        <option value="WH-JKT">WH-JKT — Gudang Utama Jakarta</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-500 font-semibold">Product SKU</label>
+                    <select name="variant_sku" required
+                            class="w-full mt-1 border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-[#714B67]">
+                        @foreach($stocks as $s)
+                        <option value="{{ $s->variant_sku }}">{{ $s->variant_sku }} — {{ $s->product?->name }} (Avail: {{ $s->company_total - $s->reserved }})</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-500 font-semibold">Quantity</label>
+                    <input type="number" name="qty" min="1" required placeholder="0"
+                           class="w-full mt-1 border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-[#714B67]">
+                </div>
             </div>
-            <div>
-                <label class="text-xs text-gray-500 font-semibold">Destination</label>
-                <select class="w-full mt-1 border border-gray-300 rounded px-3 py-1.5 text-sm"><option>HUB-BDG — Hub Distribusi Bandung</option></select>
-            </div>
-            <div>
-                <label class="text-xs text-gray-500 font-semibold">Product SKU</label>
-                <select class="w-full mt-1 border border-gray-300 rounded px-3 py-1.5 text-sm">
-                    @foreach($stocks as $s)<option>{{ $s->variant_sku }} — {{ $s->product?->name }} (Avail: {{ $s->company_total - $s->reserved }})</option>@endforeach
-                </select>
-            </div>
-            <div>
-                <label class="text-xs text-gray-500 font-semibold">Quantity</label>
-                <input type="number" min="1" class="w-full mt-1 border border-gray-300 rounded px-3 py-1.5 text-sm" placeholder="0">
-            </div>
+            <button type="submit"
+                    class="bg-[#714B67] text-white text-sm font-medium px-4 py-2 rounded hover:bg-[#5E3D56] transition">
+                Create Transfer
+            </button>
+        </form>
+        @else
+        <div class="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-xs text-gray-500">
+            Role Anda tidak memiliki izin Internal Transfer (hanya Warehouse & Master Admin).
         </div>
-        <button class="mt-4 bg-[#714B67] text-white text-sm font-medium px-4 py-2 rounded hover:bg-[#5E3D56] transition">Create Transfer</button>
+        @endif
     </div>
 
 </div>
+
+<script>
+function toggleStockPanel(id) {
+    ['filterPanel', 'groupPanel'].forEach(function (panelId) {
+        const panel = document.getElementById(panelId);
+        if (!panel) return;
+        if (panelId === id) panel.classList.toggle('hidden');
+        else panel.classList.add('hidden');
+    });
+}
+
+function applyStockFilters() {
+    const term     = (document.getElementById('stockSearch')?.value || '').toLowerCase().trim();
+    const location = document.getElementById('stockLocation')?.value || '';
+    const status   = document.getElementById('stockStatus')?.value || '';
+
+    let visible = 0;
+
+    document.querySelectorAll('#stockRows tr').forEach(function (row) {
+        const sku      = (row.dataset.sku || '').toLowerCase();
+        const name     = (row.dataset.name || '').toLowerCase();
+        const wh       = parseInt(row.dataset.wh || '0', 10);
+        const hub      = parseInt(row.dataset.hub || '0', 10);
+        const total    = parseInt(row.dataset.total || '0', 10);
+        const reserved = parseInt(row.dataset.reserved || '0', 10);
+
+        let show = !term || sku.includes(term) || name.includes(term);
+
+        if (location === 'WH-JKT' && wh <= 0) show = false;
+        if (location === 'HUB-BDG' && hub <= 0) show = false;
+
+        if (status === 'reserved' && reserved <= 0) show = false;
+        if (status === 'free'     && reserved > 0)  show = false;
+        if (status === 'empty'    && total > 0)     show = false;
+
+        row.classList.toggle('hidden', !show);
+        if (show) visible++;
+    });
+
+    const emptyRow = document.getElementById('stockEmptyRow');
+    if (emptyRow) emptyRow.classList.toggle('hidden', visible > 0);
+
+    const badge = document.getElementById('filterBadge');
+    if (badge) {
+        const active = (location ? 1 : 0) + (status ? 1 : 0) + (term ? 1 : 0);
+        badge.classList.toggle('hidden', active === 0);
+        badge.classList.toggle('inline-flex', active > 0);
+    }
+}
+
+function resetStockFilters() {
+    const search = document.getElementById('stockSearch');
+    if (search) search.value = '';
+    const location = document.getElementById('stockLocation');
+    if (location) location.value = '';
+    const status = document.getElementById('stockStatus');
+    if (status) status.value = '';
+    applyStockFilters();
+}
+
+function setStockGroup(group) {
+    const rows = Array.from(document.querySelectorAll('#stockRows tr'));
+
+    const compare = {
+        none:     null,
+        sku:      (a, b) => a.dataset.sku.localeCompare(b.dataset.sku),
+        name:     (a, b) => (a.dataset.name || '').localeCompare(b.dataset.name || ''),
+        value:    (a, b) => parseInt(b.dataset.value || '0', 10) - parseInt(a.dataset.value || '0', 10),
+        reserved: (a, b) => parseInt(b.dataset.reserved || '0', 10) - parseInt(a.dataset.reserved || '0', 10),
+    }[group];
+
+    if (compare) rows.sort(compare);
+
+    const tbody = document.getElementById('stockRows');
+    if (tbody) rows.forEach(row => tbody.appendChild(row));
+
+    const panel = document.getElementById('groupPanel');
+    if (panel) panel.classList.add('hidden');
+
+    document.querySelectorAll('.stock-group-option').forEach(function (btn) {
+        btn.classList.toggle('bg-purple-50', btn.dataset.group === group);
+        btn.classList.toggle('text-[#714B67]', btn.dataset.group === group);
+        btn.classList.toggle('font-semibold', btn.dataset.group === group);
+    });
+}
+
+document.addEventListener('click', function (event) {
+    if (event.target.closest('#filterPanel') || event.target.closest('#groupPanel')) return;
+    if (event.target.closest('[onclick*="toggleStockPanel"]')) return;
+    document.getElementById('filterPanel')?.classList.add('hidden');
+    document.getElementById('groupPanel')?.classList.add('hidden');
+});
+</script>
 @endsection

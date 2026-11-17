@@ -4,11 +4,14 @@
 
 @section('breadcrumb')
     <span class="mx-1 text-gray-300">/</span><span class="text-gray-400">Master Admin</span>
-    <span class="mx-1 text-gray-300">/</span><span class="text-gray-700 font-medium">Business Rules (SR-01..SR-22)</span>
+    <span class="mx-1 text-gray-300">/</span><span class="text-gray-700 font-medium">Business Rules</span>
 @endsection
 
 @section('control_panel_extra')
-    <button class="text-xs text-gray-600 border border-gray-300 rounded px-3 py-1 hover:bg-gray-50 transition">Export CSV</button>
+    <button type="button" onclick="exportRulesCsv()"
+            class="text-xs text-gray-600 border border-gray-300 rounded px-3 py-1 hover:bg-gray-50 transition">
+        Export CSV
+    </button>
 @endsection
 
 @section('content')
@@ -17,50 +20,12 @@
     {{-- Header --}}
     <div class="mb-6">
         <h1 class="text-xl font-semibold text-gray-800">Master Admin &amp; Business Rule Configurator</h1>
-        <p class="text-sm text-gray-500 mt-1">SR-01 s.d. SR-22 · Permission Matrix · User-Employee Mapping (SR-18)</p>
     </div>
 
-    {{-- Role Access Matrix --}}
+    {{-- User Accounts & Employee Mapping --}}
     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6">
         <div class="px-5 py-3 border-b border-gray-100 bg-gray-50">
-            <h2 class="text-sm font-semibold text-gray-700">Role Access Matrix</h2>
-            <p class="text-xs text-gray-400 mt-0.5">Hak akses CRUD + Approve + Export per Role (CheckRole middleware)</p>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-                <thead>
-                    <tr class="bg-gray-50 text-[10px] uppercase font-bold text-gray-500 tracking-wide border-b">
-                        <th class="text-left px-4 py-2">Role</th>
-                        <th class="text-center px-4 py-2">Sales/CRM</th>
-                        <th class="text-center px-4 py-2">Purchase</th>
-                        <th class="text-center px-4 py-2">Inventory</th>
-                        <th class="text-center px-4 py-2">Accounting</th>
-                        <th class="text-center px-4 py-2">Employees</th>
-                        <th class="text-center px-4 py-2">Audit Log</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-50">
-                    @foreach($roleMatrix as $row)
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-4 py-2.5 font-semibold text-gray-800">{{ $row['role'] }}</td>
-                        <td class="px-4 py-2.5 text-center text-xs">{{ $row['sales'] }}</td>
-                        <td class="px-4 py-2.5 text-center text-xs">{{ $row['purchase'] }}</td>
-                        <td class="px-4 py-2.5 text-center text-xs">{{ $row['inventory'] }}</td>
-                        <td class="px-4 py-2.5 text-center text-xs">{{ $row['accounting'] }}</td>
-                        <td class="px-4 py-2.5 text-center text-xs">{{ $row['employees'] }}</td>
-                        <td class="px-4 py-2.5 text-center text-xs">{{ $row['audit'] }}</td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    {{-- User Accounts & Employee Mapping (SR-18) --}}
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6">
-        <div class="px-5 py-3 border-b border-gray-100 bg-gray-50">
-            <h2 class="text-sm font-semibold text-gray-700">User Accounts &amp; Employee Mapping (SR-18)</h2>
-            <p class="text-xs text-gray-400 mt-0.5">Pemetaan User Account ke Employee Aktif · Hanya Employee Aktif yang boleh sign-off</p>
+            <h2 class="text-sm font-semibold text-gray-700">User Accounts &amp; Employee Mapping</h2>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
@@ -71,7 +36,7 @@
                         <th class="text-left px-4 py-2">Role</th>
                         <th class="text-left px-4 py-2">Mapped Employee</th>
                         <th class="text-center px-4 py-2">Employee Status</th>
-                        <th class="text-center px-4 py-2">Can Sign-off (SR-17)</th>
+                        <th class="text-center px-4 py-2">Can Sign-off</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
@@ -107,17 +72,16 @@
         </div>
     </div>
 
-    {{-- 22 Business Rules Table --}}
+    {{-- Business Rules Table --}}
     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div class="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
             <div>
-                <h2 class="text-sm font-semibold text-gray-700">22 Business Rules (SR-01 s.d. SR-22)</h2>
-                <p class="text-xs text-gray-400 mt-0.5">Klik baris untuk lihat detail · Status: Active / Rejected / Modified</p>
+                <h2 class="text-sm font-semibold text-gray-700">Business Rules</h2>
             </div>
             <span class="text-xs bg-gray-100 text-gray-600 font-semibold px-2.5 py-1 rounded-full">{{ count($businessRules) }} Rules</span>
         </div>
         <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+            <table class="w-full text-sm" id="rulesTable">
                 <thead>
                     <tr class="bg-gray-50 text-[10px] uppercase font-bold text-gray-500 tracking-wide border-b sticky-th">
                         <th class="text-left px-4 py-2 w-16">ID</th>
@@ -164,29 +128,58 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
-        <div class="p-6 space-y-4">
+        <form id="ruleForm" method="POST" action="" class="p-6 space-y-4">
+            @csrf
             <div>
                 <label class="text-xs text-gray-500 font-semibold">Alasan Perubahan (Change Reason)</label>
                 <p class="text-[10px] text-gray-400 mb-2">Minimum 10 karakter · Log perubahan akan dicatat ke Audit Trail</p>
-                <textarea id="changeReason" rows="3" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#714B67] focus:ring-1 focus:ring-[#714B67]" placeholder="Jelaskan alasan perubahan rule ini..." oninput="checkReasonLength()"></textarea>
+                <textarea id="changeReason" name="change_reason" rows="3" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#714B67] focus:ring-1 focus:ring-[#714B67]" placeholder="Jelaskan alasan perubahan rule ini..." oninput="checkReasonLength()"></textarea>
                 <p id="reasonCounter" class="text-[10px] text-gray-400 mt-1">0 / 10 karakter minimum</p>
             </div>
             <div class="flex items-center gap-2 pt-2">
-                <button id="confirmBtn" disabled class="bg-[#714B67] text-white text-sm font-medium px-4 py-2 rounded opacity-50 cursor-not-allowed transition">Confirm</button>
-                <button onclick="closeRuleModal()" class="border border-gray-300 text-gray-600 text-sm px-4 py-2 rounded hover:bg-gray-50 transition">Cancel</button>
+                <button id="confirmBtn" type="submit" disabled class="bg-[#714B67] text-white text-sm font-medium px-4 py-2 rounded opacity-50 cursor-not-allowed transition">Confirm</button>
+                <button type="button" onclick="closeRuleModal()" class="border border-gray-300 text-gray-600 text-sm px-4 py-2 rounded hover:bg-gray-50 transition">Cancel</button>
             </div>
-        </div>
+        </form>
     </div>
 </div>
 
 <script>
+const RULE_ACTION_BASE = "{{ url('admin/business-rules') }}/";
+
 function openRuleModal(id) {
     document.getElementById('ruleIdLabel').textContent = id;
+    document.getElementById('ruleForm').action = RULE_ACTION_BASE + id + '/note';
     document.getElementById('ruleModal').classList.remove('hidden');
     document.getElementById('changeReason').value = '';
     checkReasonLength();
 }
 function closeRuleModal() { document.getElementById('ruleModal').classList.add('hidden'); }
+
+function exportRulesCsv() {
+    const table = document.getElementById('rulesTable');
+    if (!table) return;
+
+    const escape = value => '"' + String(value).replace(/"/g, '""') + '"';
+    const lines  = [];
+
+    table.querySelectorAll('thead tr').forEach(function (tr) {
+        lines.push(Array.from(tr.querySelectorAll('th')).map(th => escape(th.textContent.trim())).join(','));
+    });
+
+    table.querySelectorAll('tbody tr').forEach(function (tr) {
+        lines.push(Array.from(tr.querySelectorAll('td')).map(td => escape(td.textContent.trim())).join(','));
+    });
+
+    const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'arunika-business-rules-' + new Date().toISOString().slice(0, 10) + '.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+}
 function checkReasonLength() {
     const len = document.getElementById('changeReason').value.length;
     const btn = document.getElementById('confirmBtn');

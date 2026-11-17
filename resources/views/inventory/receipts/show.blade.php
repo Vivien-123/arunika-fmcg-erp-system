@@ -31,7 +31,7 @@
                     </span>
                     @if($receipt->is_posted)
                     <span class="text-[10px] text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded">
-                        ✓ SR-16 Posted
+                        ✓ Posted
                     </span>
                     @endif
                 </div>
@@ -131,7 +131,7 @@
 
         @if($receipt->status !== 'done')
         <div class="px-4 py-3 border-t border-gray-100 bg-gray-50 space-y-3">
-            <h3 class="text-xs font-semibold text-gray-600">Sign-off Validator (SR-17/SR-18)</h3>
+            <h3 class="text-xs font-semibold text-gray-600">Validator Penerimaan</h3>
             <div class="flex items-center gap-3 flex-wrap">
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Employee Warehouse Aktif <span class="text-red-500">*</span></label>
@@ -153,7 +153,6 @@
                     </button>
                 </div>
             </div>
-            <p class="text-[10px] text-gray-400">SR-06: Hanya accepted_qty masuk stok · SR-17: Wajib Employee Aktif D-WH · SR-16: Idempotent</p>
         </div>
         </form>
         @endif
@@ -161,14 +160,12 @@
 
     @if($receipt->status === 'done')
     <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-xs text-green-800">
-        ✅ Receipt Done. Stok bertambah sesuai <strong>accepted_qty</strong> (SR-06).
-        Journal Dr 1300 Persediaan / Cr 1350 Stock Interim sudah diposting (SR-03, confirmed answer §9).
+        ✅ Penerimaan selesai. Stok telah diperbarui.
     </div>
 
     {{-- ── GR → Vendor Bill (SR-06, 3-way match, M2-W3-01) ── --}}
     @php
-        use App\Models\PurchaseOrder;
-        $po           = PurchaseOrder::with('lines')->find($receipt->purchase_order_id);
+        $po           = \App\Models\PurchaseOrder::with('lines')->find($receipt->purchase_order_id);
         $vendor       = \App\Models\Vendor::find($receipt->vendor_id);
         $canBill      = false;
         $billLines    = [];
@@ -198,7 +195,7 @@
     @if($canBill)
     <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-3">
         <div>
-            <h3 class="text-sm font-semibold text-amber-800">Buat Vendor Bill — 3-Way Match (SR-06)</h3>
+            <h3 class="text-sm font-semibold text-amber-800">Buat Vendor Bill — Cocokkan Pesanan dan Penerimaan</h3>
             <p class="text-xs text-amber-600 mt-0.5">Bill berdasarkan accepted_qty − already_billed. Rejected qty tidak ditagih.</p>
         </div>
 
@@ -233,7 +230,7 @@
             <input type="hidden" name="partner_name"  value="{{ $vendor->name }}">
             <input type="hidden" name="source_po"     value="{{ $receipt->purchase_order_id }}">
             <input type="hidden" name="source_gr"     value="{{ $receipt->id }}">
-            <input type="hidden" name="payment_terms" value="{{ $po?->payment_terms ?? 'NET14' }}">
+            <input type="hidden" name="payment_terms" value="{{ \App\Models\Invoice::normalizePaymentTerms($po?->payment_terms ?? null) }}">
             @foreach($billLines as $i => $bl)
             <input type="hidden" name="lines[{{ $i }}][product_id]"     value="{{ $bl['product_id'] }}">
             <input type="hidden" name="lines[{{ $i }}][variant_sku]"    value="{{ $bl['variant_sku'] }}">

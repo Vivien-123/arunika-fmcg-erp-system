@@ -72,7 +72,6 @@
     @endif
 </button>
 
-<a href="{{ route('reporting.testing') }}" class="btn-secondary text-xs">Integration Testing →</a>
 @endsection
 
 @section('content')
@@ -80,15 +79,8 @@
 {{-- Page header --}}
 <div class="mb-5 flex items-start justify-between gap-4">
     <div>
-        <h1 class="text-xl font-bold text-gray-900">Audit log &amp; system trail</h1>
-        <p class="text-xs text-gray-400 mt-0.5">S-18 / Security · F-21 · F-22 · Read-only</p>
+        <h1 class="text-xl font-bold text-gray-900">Log Aktivitas</h1>
     </div>
-</div>
-
-{{-- Info banner --}}
-<div class="alert-info mb-5 text-xs text-blue-800">
-    <p class="font-semibold mb-0.5">Riwayat Immutable · Tidak ada Edit atau Delete</p>
-    <p class="text-blue-600">Contoh tampilan audit, bukan aktivitas sistem yang sudah dieksekusi. Semua timestamp menggunakan WIB.</p>
 </div>
 
 {{-- Filter bar --}}
@@ -98,7 +90,7 @@
                id="searchInput" value="{{ $filters['document_ref'] ?? '' }}"
                onchange="syncSearch(this.value)">
         <select class="filter-input" id="typeSelect" onchange="syncType(this.value)">
-            <option value="">Semua status</option>
+            <option value="">Semua jenis dokumen</option>
             @foreach($distinctTypes as $dt)
             <option value="{{ $dt }}" {{ ($filters['document_type'] ?? '') === $dt ? 'selected' : '' }}>
                 {{ ucfirst(str_replace('_',' ',$dt)) }}
@@ -106,12 +98,11 @@
             @endforeach
         </select>
         <select class="filter-input" id="actionSelect" onchange="syncAction(this.value)">
-            <option value="">Group by</option>
+            <option value="">Semua aksi</option>
             @foreach($distinctActions as $act)
             <option value="{{ $act }}" {{ ($filters['action'] ?? '') === $act ? 'selected' : '' }}>{{ $act }}</option>
             @endforeach
         </select>
-        <input type="text" placeholder="Kolom" class="filter-input w-28" readonly>
         <button onclick="exportAudit()" class="filter-input text-gray-500 hover:text-gray-700 cursor-pointer">Export CSV</button>
     </div>
 </div>
@@ -241,7 +232,6 @@
 </div>
 
 {{-- Feature reference --}}
-<p class="text-[10px] text-gray-300 mt-4">S-18 · F-21 · SR-16 (idempotent) · SR-19 (traceability) · T-35 (related docs) · T-36 (re-validate block)</p>
 
 @endsection
 
@@ -259,7 +249,6 @@
                     </svg>
                     Filter Audit Log
                 </h2>
-                <p class="text-purple-200 text-xs mt-0.5">Sempitkan hasil berdasarkan kriteria berikut</p>
             </div>
             <button onclick="closeFilterModal()" class="text-white/70 hover:text-white p-1 rounded hover:bg-white/10 transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>

@@ -42,13 +42,12 @@
         {{-- ① Title + Status bar --}}
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 px-5 py-4 border-b bg-gray-50">
             <div>
-                <span class="text-xs text-gray-400">F-05, F-06, F-10, F-22 · S-05</span>
                 <h1 class="text-lg font-bold text-gray-800 mt-0.5">{{ $so->id }}</h1>
                 <span class="text-xs px-2 py-0.5 rounded-full font-semibold {{ $statusColors[$so->status]??'bg-gray-100 text-gray-500' }}">
                     {{ ucfirst(str_replace('_',' ',$so->status)) }}
                 </span>
                 @if($so->isLocked())
-                    <span class="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full ml-1">🔒 Harga Terkunci (SR-12)</span>
+                    <span class="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full ml-1">🔒 Harga terkunci</span>
                 @endif
             </div>
             {{-- ② Status breadcrumb --}}
@@ -93,7 +92,7 @@
                 <p class="text-gray-700">{{ $so->order_date }}</p>
             </div>
             <div>
-                <p class="text-xs text-gray-400">Janji Kirim (SR-03)</p>
+                <p class="text-xs text-gray-400">Janji Kirim</p>
                 <p class="text-gray-700">{{ $so->delivery_promise_date ?? '—' }}</p>
             </div>
         </div>
@@ -155,7 +154,7 @@
         {{-- Discount approval notice --}}
         @if($so->isToApprove())
         <div class="mx-5 my-3 bg-yellow-50 border border-yellow-300 rounded-lg px-4 py-3">
-            <p class="text-sm font-semibold text-yellow-800">⚠️ Menunggu Persetujuan Diskon (SR-07/08)</p>
+            <p class="text-sm font-semibold text-yellow-800">⚠️ Menunggu persetujuan diskon</p>
             <p class="text-xs text-yellow-700 mt-0.5">Diskon &gt;10% ditemukan pada baris ini. Finance approval diperlukan sebelum SO dapat dikonfirmasi.</p>
             @if(in_array($user->role, ['Finance','MasterAdmin']))
             <div class="flex gap-2 mt-3">

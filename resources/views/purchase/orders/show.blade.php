@@ -41,7 +41,7 @@
                     </span>
                     @if($order->is_locked)
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] bg-orange-50 text-orange-700 border border-orange-200">
-                        🔒 SR-21 Locked
+                        🔒 Harga terkunci setelah konfirmasi
                     </span>
                     @endif
                 </div>
@@ -75,7 +75,7 @@
                 @csrf
                 <button type="submit"
                     class="bg-blue-600 text-white text-xs font-medium px-3 py-1.5 rounded hover:bg-blue-700 transition">
-                    ✓ Konfirmasi PO (SR-21)
+                    ✓ Konfirmasi PO
                 </button>
             </form>
             <form method="POST" action="{{ route('purchase.orders.cancel', $order->id) }}"

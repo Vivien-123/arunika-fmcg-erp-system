@@ -31,7 +31,6 @@
         {{-- ① Title bar --}}
         <div class="flex items-center justify-between px-5 py-4 border-b bg-gray-50">
             <div>
-                <span class="text-xs text-gray-400 font-mono">F-04 · S-04 · SR-19</span>
                 <h1 class="text-lg font-bold text-gray-800 mt-0.5">{{ $lead->id }} — {{ $lead->partner_name ?? 'Tanpa Pelanggan' }}</h1>
             </div>
             {{-- ② Status bar --}}
@@ -89,12 +88,12 @@
             {{-- SR-19 demo: test remove customer --}}
             @if($lead->partner_id)
             <form method="POST" action="{{ route('crm.leads.update-customer', $lead->id) }}"
-                  onsubmit="return confirm('Hapus relasi pelanggan? (Akan ditolak jika status Qualified - SR-19)')">
+                  onsubmit="return confirm('Hapus relasi pelanggan dari prospek ini?')">
                 @csrf
                 <input type="hidden" name="partner_id" value="">
                 <button type="submit"
                         class="border border-red-300 text-red-600 px-3 py-1.5 rounded text-sm hover:bg-red-50 transition">
-                    🗑 Hapus Pelanggan (T-08 test)
+                    Hapus Pelanggan
                 </button>
             </form>
             @endif

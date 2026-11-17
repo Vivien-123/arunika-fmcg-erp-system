@@ -14,7 +14,6 @@
     <div class="flex items-center justify-between">
         <div>
             <h1 class="page-title">Goods Receipts</h1>
-            <p class="page-sub">Penerimaan dari vendor · SR-06 3-way match · SR-17 sign-off active Warehouse employee</p>
         </div>
     </div>
 

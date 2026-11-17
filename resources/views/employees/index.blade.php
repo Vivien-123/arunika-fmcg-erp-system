@@ -190,7 +190,6 @@
                     </svg>
                     Filter Pegawai
                 </h2>
-                <p class="text-white/60 text-xs mt-0.5">Sempitkan hasil berdasarkan kriteria berikut</p>
             </div>
             <button onclick="closeEmpFilterModal()"
                     class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/20 hover:bg-white/30 text-white transition">

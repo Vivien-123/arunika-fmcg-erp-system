@@ -32,7 +32,7 @@
                     </span>
                     @if($delivery->is_posted)
                     <span class="text-[10px] text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded">
-                        ✓ SR-16 Posted
+                        ✓ Posted
                     </span>
                     @endif
                 </div>
@@ -128,7 +128,7 @@
         @if($delivery->status !== 'done' && auth()->user()->canEdit())
         {{-- Validator section inside the form --}}
         <div class="px-4 py-3 border-t border-gray-100 bg-gray-50 space-y-3">
-            <h3 class="text-xs font-semibold text-gray-600">Sign-off Validator (SR-17/SR-18)</h3>
+            <h3 class="text-xs font-semibold text-gray-600">Validator Pengiriman</h3>
             <div class="flex items-center gap-3 flex-wrap">
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Employee Warehouse Aktif <span class="text-red-500">*</span></label>
@@ -150,7 +150,6 @@
                     </button>
                 </div>
             </div>
-            <p class="text-[10px] text-gray-400">SR-04: Stok negatif diblokir · SR-07: FEFO lot auto-picked · SR-16: Idempotent · SR-17: Hanya Employee Aktif D-WH</p>
         </div>
         </form>
         @endif
@@ -159,14 +158,12 @@
     {{-- Info box for done --}}
     @if($delivery->status === 'done')
     <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-xs text-green-800">
-        ✅ Delivery Done. Stok sudah dikurangi. COGS journal (Dr 5100 / Cr 1300) sudah diposting (SR-03).
-        SO lines <code class="mono">delivered_qty</code> sudah diupdate.
+        ✅ Pengiriman selesai. Stok telah diperbarui.
     </div>
 
     {{-- ── DO → Customer Invoice (SR-02, M2-W3-01) ── --}}
     @php
-        use App\Models\SalesOrder;
-        $so         = SalesOrder::with('lines.product')->find($delivery->sales_order_id);
+        $so         = \App\Models\SalesOrder::with('lines.product')->find($delivery->sales_order_id);
         $customer   = \App\Models\Customer::find($delivery->customer_id);
         $canInvoice = false;
         $invoiceLines = [];
@@ -194,7 +191,7 @@
     <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
         <div class="flex items-center justify-between">
             <div>
-                <h3 class="text-sm font-semibold text-blue-800">Buat Customer Invoice (SR-02)</h3>
+                <h3 class="text-sm font-semibold text-blue-800">Buat Customer Invoice</h3>
                 <p class="text-xs text-blue-600 mt-0.5">Penagihan berdasarkan delivered_qty − invoiced_qty. Hanya qty Done yang ditagih.</p>
             </div>
         </div>
@@ -229,7 +226,7 @@
             <input type="hidden" name="partner_name"  value="{{ $customer->name }}">
             <input type="hidden" name="source_so"     value="{{ $delivery->sales_order_id }}">
             <input type="hidden" name="source_do"     value="{{ $delivery->id }}">
-            <input type="hidden" name="payment_terms" value="{{ $so->payment_terms ?? 'NET14' }}">
+            <input type="hidden" name="payment_terms" value="{{ \App\Models\Invoice::normalizePaymentTerms($so->payment_terms ?? null) }}">
             @foreach($invoiceLines as $i => $il)
             @php
                 $soLine = $so->lines->firstWhere('variant_sku', $il['variant_sku']);

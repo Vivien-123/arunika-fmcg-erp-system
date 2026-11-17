@@ -13,7 +13,6 @@
     <div class="flex items-center justify-between mb-5">
         <div>
             <h1 class="text-xl font-bold text-gray-800">Customer Invoices</h1>
-            <p class="text-xs text-gray-400 mt-0.5">S-10 · F-09 · SR-01/SR-02</p>
         </div>
         <a href="{{ route('accounting.invoices.create') }}"
            class="bg-[#714B67] hover:bg-[#4a2e47] text-white text-xs font-semibold px-4 py-2 rounded-lg shadow transition">

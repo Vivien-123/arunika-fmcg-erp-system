@@ -14,7 +14,6 @@
     <div class="flex items-center justify-between">
         <div>
             <h1 class="page-title">Delivery Orders</h1>
-            <p class="page-sub">FEFO picking · SR-04 anti-negative stock · SR-17 sign-off validator</p>
         </div>
         @if(auth()->user()->canEdit())
         <a href="{{ route('inventory.deliveries.create') }}"

@@ -83,7 +83,6 @@
         .dot { width:8px; height:8px; border-radius:50%; display:inline-block; flex-shrink:0; }
         /* Page layout helpers */
         .page-title { font-size:21px; font-weight:700; color:#0F172A; letter-spacing:-0.3px; }
-        .page-sub   { font-size:12px; color:#94A3B8; margin-top:2px; }
         /* Table improvements */
         table { border-collapse:collapse; }
         thead th { font-size:11px; font-weight:600; letter-spacing:0.05em; }
@@ -96,8 +95,9 @@
         /* Better focus rings */
         *:focus-visible { outline: 2px solid #714B67; outline-offset: 2px; }
     </style>
+    <link rel="stylesheet" href="{{ asset('css/odoo-modern.css') }}">
 </head>
-<body class="font-sans text-sm text-[#0F172A]">
+<body class="font-sans text-sm text-[#0F172A]" data-role="{{ auth()->user()->role ?? 'guest' }}" data-app="{{ $currentApp ?? '' }}">
 
 {{-- ═══════════════════════════════════════════════════
      TOP NAVBAR — 48px fixed (sesuai Figma)
@@ -107,7 +107,7 @@
 
         {{-- Logo / Company --}}
         <a href="{{ route('home') }}" class="flex items-center gap-2 shrink-0 hover:opacity-90 transition">
-            <div class="w-7 h-7 bg-white/20 rounded flex items-center justify-center font-black text-sm">A</div>
+            <div class="navbar-brand-mark w-7 h-7 rounded flex items-center justify-center font-black text-sm">A</div>
             <span class="font-bold text-sm tracking-tight hidden sm:inline">ARUNIKA</span>
         </a>
         <span class="text-purple-200 text-xs hidden lg:inline">/</span>
@@ -117,30 +117,8 @@
         <span class="text-white text-xs font-medium hidden lg:inline">{{ $currentApp }}</span>
         @endif
 
-        {{-- Global Search --}}
-        <div class="flex-1 max-w-sm mx-2 hidden md:block">
-            <div class="relative">
-                <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
-                <input type="text" placeholder="Cari dokumen, SKU, kontak..."
-                    class="w-full h-7 bg-[#5E3D56] text-white placeholder-purple-300 rounded text-xs px-3 pl-8 focus:outline-none focus:ring-1 focus:ring-purple-300">
-            </div>
-        </div>
-
         {{-- Right controls --}}
         <div class="ml-auto flex items-center gap-1 shrink-0">
-            {{-- Bell --}}
-            <button class="relative h-8 w-8 flex items-center justify-center rounded hover:bg-white/10 transition" title="Notifikasi">
-                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                </svg>
-                <span class="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500 text-[9px] font-bold rounded-full flex items-center justify-center">3</span>
-            </button>
-
-            {{-- Help --}}
-            <button class="h-8 w-8 flex items-center justify-center rounded hover:bg-white/10 transition text-purple-200 font-semibold text-sm">?</button>
-
             @auth
             {{-- Profile --}}
             <button onclick="toggleProfileMenu()" class="flex items-center gap-2 h-8 px-2 rounded hover:bg-white/10 transition ml-1">
@@ -161,14 +139,23 @@
                     <span class="inline-block mt-1.5 text-[10px] font-mono font-semibold bg-purple-100 text-purple-700 px-2 py-0.5 rounded">{{ auth()->user()->role }}</span>
                 </div>
                 <div class="py-1 text-sm">
+                    @if(auth()->user()->canViewEmployeeDirectory())
                     <a href="{{ route('employees.index') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-gray-600 hover:bg-gray-50 transition text-xs">
                         <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                         Profil & Pegawai
                     </a>
+                    @else
+                    <a href="{{ route('employees.me') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-gray-600 hover:bg-gray-50 transition text-xs">
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        Profil Saya
+                    </a>
+                    @endif
+                    @if(auth()->user()->canViewAuditLog())
                     <a href="{{ route('reporting.audit') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-gray-600 hover:bg-gray-50 transition text-xs">
                         <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         Audit Log
                     </a>
+                    @endif
                 </div>
                 <div class="border-t border-gray-100 py-1">
                     <form method="POST" action="{{ route('logout') }}">
@@ -234,7 +221,6 @@
                 'title' => 'Inventory & Stock',
                 'items' => [
                     ['label'=>'Stock Overview',    'url'=>route('inventory.stock'),             'match'=>'inventory/stock'],
-                    ['label'=>'Purchase Orders',   'url'=>route('purchase.orders.index'),       'match'=>'purchase/orders'],
                     ['label'=>'Delivery Orders',   'url'=>route('inventory.deliveries.index'),  'match'=>'inventory/deliveries'],
                     ['label'=>'Goods Receipts',    'url'=>route('inventory.receipts.index'),    'match'=>'inventory/receipts'],
                     ['label'=>'Internal Transfer', 'url'=>route('inventory.transfer'),          'match'=>'inventory/transfer'],
@@ -258,12 +244,13 @@
             ],
             'Reporting' => [
                 'title' => 'Reporting',
-                'items' => [
-                    ['label'=>'Operational Dashboard',   'url'=>route('reporting.dashboard'),    'match'=>'reporting/dashboard'],
-                    ['label'=>'Audit Trail',              'url'=>route('reporting.audit'),        'match'=>'reporting/audit'],
-                    ['label'=>'Integration Testing',      'url'=>route('reporting.testing'),      'match'=>'reporting/testing'],
-                    ['label'=>'Test Results M3',          'url'=>route('reporting.test-results'), 'match'=>'reporting/test-results'],
-                ],
+                // Audit Trail hanya untuk MasterAdmin & Owner
+                'items' => array_values(array_filter([
+                    ['label'=>'Operational Dashboard', 'url'=>route('reporting.dashboard'), 'match'=>'reporting/dashboard'],
+                    $user->canViewAuditLog()
+                        ? ['label'=>'Audit Log', 'url'=>route('reporting.audit'), 'match'=>'reporting/audit']
+                        : null,
+                ])),
             ],
             'Admin' => [
                 'title' => 'Master Admin',
@@ -272,6 +259,23 @@
                 ],
             ],
         ];
+
+        // Portal user tanpa hak direktori (Sales, Finance, Purchase, Warehouse):
+        // menu Employees diganti menjadi profil miliknya sendiri.
+        if (!$user->canViewEmployeeDirectory()) {
+            $moduleSidebarItems['Employees'] = [
+                'title' => 'Profil Saya',
+                'items' => [
+                    ['label'=>'Profil Saya', 'url'=>route('employees.me'), 'match'=>'employees'],
+                ],
+            ];
+        } elseif (!$user->isMasterAdmin() && !$user->isOwner()) {
+            // HR tidak membuka Defense Prep (khusus Owner & MasterAdmin)
+            $moduleSidebarItems['Employees']['items'] = array_values(array_filter(
+                $moduleSidebarItems['Employees']['items'],
+                fn($it) => $it['label'] !== 'Defense Prep'
+            ));
+        }
 
         // Owner is strictly view-only: remove create/action options from sidebar
         if ($user->isOwner()) {

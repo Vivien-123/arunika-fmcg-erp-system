@@ -1,16 +1,9 @@
 @extends('layouts.app')
-@section('title', 'Integration Testing Monitor')
-@php $currentApp = 'Integration Testing'; @endphp
+@section('title', 'Daftar Skenario Pengujian')
+@php $currentApp = 'Pengujian'; @endphp
 
 @section('breadcrumb')
-    <span class="mx-1">/</span><span class="text-gray-600 font-medium">Integration Testing</span>
-@endsection
-
-@section('control_panel_extra')
-<button class="btn-primary text-xs flex items-center gap-1.5">
-    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-    Run scenarios
-</button>
+    <span class="mx-1">/</span><span class="text-gray-600 font-medium">Skenario Pengujian</span>
 @endsection
 
 @section('content')
@@ -18,37 +11,50 @@
 
     {{-- Page header --}}
     <div class="mb-5">
-        <h1 class="text-xl font-bold text-gray-900">Integration testing monitor</h1>
-        <p class="text-xs text-gray-400 mt-0.5">S-18 · F-21 · F-22 · {{ $total }} skenario · {{ $passed > 0 ? $passed.' passed' : 'Belum dieksekusi' }}</p>
+        <h1 class="text-xl font-bold text-gray-900">Skenario Pengujian</h1>
     </div>
 
     {{-- Filter bar --}}
     <div class="panel mb-4">
         <div class="px-4 py-3 flex items-center gap-2 flex-wrap border-b border-gray-100">
-            <input type="text" placeholder="Cari..." class="filter-input w-48">
-            <select class="filter-input"><option>Semua status</option><option>Pass</option><option>Not Run</option><option>Failed</option></select>
-            <select class="filter-input"><option>Group by</option><option>Module</option><option>Category</option></select>
-            <select class="filter-input"><option>Kolom</option></select>
-            <button class="filter-input text-gray-500">Export CSV</button>
+            <input type="text" id="testSearch" oninput="applyTestFilters()" placeholder="Cari skenario..." class="filter-input w-48">
+            <select id="testStatus" onchange="applyTestFilters()" class="filter-input">
+                <option value="">Semua status</option>
+                <option value="not_run">Belum dijalankan</option>
+            </select>
+            <select id="testGroup" onchange="applyTestFilters()" class="filter-input">
+                <option value="none">Kelompok: Tanpa grup</option>
+                <option value="module">Kelompok: Modul</option>
+                <option value="category">Kelompok: Kategori</option>
+            </select>
+            <select id="testColumns" onchange="toggleTestColumn()" class="filter-input">
+                <option value="all">Kolom: Semua</option>
+                <option value="basic">Kolom: Ringkas</option>
+            </select>
+            <button type="button" onclick="exportTestingCsv()" class="filter-input text-gray-500 hover:bg-gray-50 transition">Export CSV</button>
+            <span class="ml-auto text-[11px] text-gray-400">
+                <strong id="testVisibleCount" class="text-gray-700">{{ $total }}</strong> skenario tampil ·
+                <strong id="testSelectedCount" class="text-[#714B67]">0</strong> dipilih
+            </span>
         </div>
     </div>
 
     {{-- KPI cards --}}
     <div class="grid grid-cols-4 gap-3 mb-5">
         <div class="panel px-4 py-3">
-            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wide">Passed</p>
+            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wide">Lulus</p>
             <p class="text-3xl font-bold text-green-600 mt-1 tnum">{{ $passed }}</p>
         </div>
         <div class="panel px-4 py-3">
-            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wide">Failed</p>
-            <p class="text-3xl font-bold text-red-500 mt-1 tnum">0</p>
+            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wide">Gagal</p>
+            <p class="text-3xl font-bold text-red-500 mt-1 tnum">{{ $failed }}</p>
         </div>
         <div class="panel px-4 py-3">
-            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wide">Blocked</p>
-            <p class="text-3xl font-bold text-yellow-500 mt-1 tnum">0</p>
+            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wide">Terblokir</p>
+            <p class="text-3xl font-bold text-yellow-500 mt-1 tnum">{{ $blocked }}</p>
         </div>
         <div class="panel px-4 py-3">
-            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wide">Not Run</p>
+            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wide">Belum dijalankan</p>
             <p class="text-3xl font-bold text-gray-400 mt-1 tnum">{{ $total - $passed }}</p>
         </div>
     </div>
@@ -56,15 +62,12 @@
     {{-- Progress --}}
     <div class="panel px-5 py-4 mb-5">
         <div class="flex items-center justify-between mb-2">
-            <span class="text-sm font-semibold text-gray-700">{{ $passed }} / {{ $total }} skenario selesai</span>
-            <span class="text-xs text-gray-400">Total: {{ $total }} · Progress: {{ round($passed/$total*100) }}%</span>
+            <span class="text-sm font-semibold text-gray-700">{{ $total }} skenario menunggu pengujian</span>
+            <span class="text-xs text-gray-400">{{ $passed }} / {{ $total }} dijalankan</span>
         </div>
         <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
             <div class="h-full bg-[#714B67] rounded-full transition-all duration-500" style="width: {{ round($passed/$total*100) }}%"></div>
         </div>
-        @if($passed === 0)
-        <p class="text-xs text-gray-400 mt-2">Skenario rinci berikut adalah usulan turunan dari kelompok pengujian pada blueprint.</p>
-        @endif
     </div>
 
     {{-- Table --}}
@@ -74,28 +77,30 @@
             'pass'    => ['class'=>'badge-green',  'label'=>'Pass'],
             'fail'    => ['class'=>'badge-red',    'label'=>'Failed'],
             'blocked' => ['class'=>'badge-yellow', 'label'=>'Blocked'],
-            'not_run' => ['class'=>'badge-gray',   'label'=>'Not Run'],
+            'not_run' => ['class'=>'badge-gray',   'label'=>'Belum dijalankan'],
         ];
     @endphp
 
     <div class="panel overflow-hidden">
         <div class="px-5 py-3 border-b border-gray-100">
-            <h3 class="text-sm font-semibold text-gray-700">Testing matrix / T-01 — T-36</h3>
+            <h3 class="text-sm font-semibold text-gray-700">Daftar Skenario</h3>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-xs">
                 <thead>
                     <tr class="border-b border-gray-100">
-                        <th class="text-left px-5 py-2.5 text-[10px] font-bold text-gray-400 uppercase w-8"></th>
-                        <th class="text-left px-2 py-2.5 text-[10px] font-bold text-gray-400 uppercase w-8"></th>
+                        <th class="text-left px-5 py-2.5 w-8">
+                            <input type="checkbox" id="testSelectAll" onchange="toggleAllTests(this)"
+                                   class="w-3.5 h-3.5 accent-[#714B67] cursor-pointer" title="Pilih semua">
+                        </th>
                         <th class="text-left px-2 py-2.5 text-[10px] font-bold text-gray-400 uppercase tracking-wide w-20">Test ID</th>
                         <th class="text-left px-4 py-2.5 text-[10px] font-bold text-gray-400 uppercase tracking-wide">Skenario</th>
                         <th class="text-left px-4 py-2.5 text-[10px] font-bold text-gray-400 uppercase tracking-wide w-20">Modul</th>
-                        <th class="text-left px-4 py-2.5 text-[10px] font-bold text-gray-400 uppercase tracking-wide">Expected result</th>
+                        <th class="text-left px-4 py-2.5 text-[10px] font-bold text-gray-400 uppercase tracking-wide test-col-expected">Hasil yang diharapkan</th>
                         <th class="text-left px-4 py-2.5 text-[10px] font-bold text-gray-400 uppercase tracking-wide w-24">Status</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-50">
+                <tbody id="testRows" class="divide-y divide-gray-50">
                     @foreach($tests as $test)
                     @php
                         $sc = $statusConfig[$test['status']] ?? $statusConfig['not_run'];
@@ -122,17 +127,21 @@
                         ];
                         $expected = $expectedMap[$test['id']] ?? $test['name'];
                     @endphp
-                    <tr class="tr-hover">
-                        <td class="px-5 py-3 text-gray-300">
-                            <svg class="w-4 h-4 hover:text-[#714B67] cursor-pointer transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                        </td>
-                        <td class="px-2 py-3">
-                            <input type="checkbox" class="w-3.5 h-3.5 accent-[#714B67]">
+                    <tr class="tr-hover test-row"
+                        data-id="{{ $test['id'] }}"
+                        data-name="{{ $test['name'] }}"
+                        data-status="{{ $test['status'] }}"
+                        data-module="{{ $test['module'] }}"
+                        data-category="{{ $test['category'] }}"
+                        data-expected="{{ $expected }}">
+                        <td class="px-5 py-3">
+                            <input type="checkbox" class="w-3.5 h-3.5 accent-[#714B67] cursor-pointer test-select"
+                                   onchange="updateTestSelectedCount()">
                         </td>
                         <td class="px-2 py-3 font-mono font-bold text-[#714B67] text-[11px]">{{ $test['id'] }}</td>
                         <td class="px-4 py-3 text-gray-700">{{ $test['name'] }}</td>
                         <td class="px-4 py-3"><span class="badge {{ $mc }}">{{ $test['module'] }}</span></td>
-                        <td class="px-4 py-3 text-gray-500">{{ $expected }}</td>
+                        <td class="px-4 py-3 text-gray-500 test-col-expected">{{ $expected }}</td>
                         <td class="px-4 py-3"><span class="badge {{ $sc['class'] }}">{{ $sc['label'] }}</span></td>
                     </tr>
                     @endforeach
@@ -141,4 +150,132 @@
         </div>
     </div>
 </div>
+
+<script>
+function testRows() {
+    return Array.from(document.querySelectorAll('#testRows tr.test-row'));
+}
+
+function applyTestFilters() {
+    const term   = (document.getElementById('testSearch')?.value || '').toLowerCase().trim();
+    const status = document.getElementById('testStatus')?.value || '';
+    const group  = document.getElementById('testGroup')?.value || 'none';
+
+    let visible = 0;
+
+    testRows().forEach(function (row) {
+        const haystack = (row.dataset.id + ' ' + row.dataset.name + ' ' + row.dataset.category).toLowerCase();
+        let show = !term || haystack.includes(term);
+        if (status && row.dataset.status !== status) show = false;
+
+        row.classList.toggle('hidden', !show);
+        if (show) visible++;
+    });
+
+    // Bersihkan header grup lama
+    document.querySelectorAll('#testRows tr.test-group-header').forEach(h => h.remove());
+
+    if (group !== 'none') {
+        const header = group === 'module' ? 'Modul' : 'Kategori';
+
+        // Urutkan baris berdasarkan grup
+        const sorted = testRows().sort((a, b) => {
+            const av = group === 'module' ? a.dataset.module : a.dataset.category;
+            const bv = group === 'module' ? b.dataset.module : b.dataset.category;
+            return av.localeCompare(bv) || a.dataset.id.localeCompare(b.dataset.id);
+        });
+
+        const tbody = document.getElementById('testRows');
+        let currentKey = null;
+
+        sorted.forEach(function (row) {
+            const key = group === 'module' ? row.dataset.module : row.dataset.category;
+
+            if (key !== currentKey) {
+                currentKey = key;
+                const groupRow = document.createElement('tr');
+                groupRow.className = 'test-group-header bg-gray-50';
+                groupRow.innerHTML = '<td colspan="6" class="px-5 py-1.5 text-[10px] font-bold uppercase tracking-wide text-[#714B67]">'
+                    + header + ': ' + key + '</td>';
+                if (row.classList.contains('hidden')) groupRow.dataset.hiddenGroup = '1';
+                tbody.appendChild(groupRow);
+            }
+
+            tbody.appendChild(row);
+        });
+
+        // Sembunyikan header grup yang seluruh anggotanya tersaring
+        document.querySelectorAll('#testRows tr.test-group-header').forEach(function (headerRow) {
+            let next = headerRow.nextElementSibling;
+            let hasVisible = false;
+            while (next && !next.classList.contains('test-group-header')) {
+                if (next.classList.contains('test-row') && !next.classList.contains('hidden')) hasVisible = true;
+                next = next.nextElementSibling;
+            }
+            headerRow.classList.toggle('hidden', !hasVisible);
+        });
+    }
+
+    const counter = document.getElementById('testVisibleCount');
+    if (counter) counter.textContent = visible;
+}
+
+function toggleTestColumn() {
+    const mode = document.getElementById('testColumns')?.value || 'all';
+    document.querySelectorAll('.test-col-expected').forEach(function (cell) {
+        cell.classList.toggle('hidden', mode === 'basic');
+    });
+}
+
+function toggleAllTests(master) {
+    testRows().forEach(function (row) {
+        if (row.classList.contains('hidden')) return;
+        const box = row.querySelector('.test-select');
+        if (box) box.checked = master.checked;
+    });
+    updateTestSelectedCount();
+}
+
+function updateTestSelectedCount() {
+    const selected = testRows().filter(r => r.querySelector('.test-select')?.checked);
+    const counter  = document.getElementById('testSelectedCount');
+    if (counter) counter.textContent = selected.length;
+
+    const master = document.getElementById('testSelectAll');
+    const visibleRows = testRows().filter(r => !r.classList.contains('hidden'));
+    if (master) {
+        master.checked = visibleRows.length > 0 && visibleRows.every(r => r.querySelector('.test-select')?.checked);
+    }
+}
+
+function exportTestingCsv() {
+    const selected = testRows().filter(r => r.querySelector('.test-select')?.checked);
+    const rows     = selected.length > 0
+        ? selected
+        : testRows().filter(r => !r.classList.contains('hidden'));
+
+    const escape = value => '"' + String(value).replace(/"/g, '""') + '"';
+
+    const lines = [['Test ID', 'Skenario', 'Modul', 'Kategori', 'Expected result', 'Status'].map(escape).join(',')];
+    rows.forEach(function (row) {
+        lines.push([
+            row.dataset.id,
+            row.dataset.name,
+            row.dataset.module,
+            row.dataset.category,
+            row.dataset.expected,
+            row.dataset.status,
+        ].map(escape).join(','));
+    });
+
+    const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'arunika-integration-tests-' + new Date().toISOString().slice(0, 10) + '.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+}
+</script>
 @endsection

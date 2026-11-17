@@ -11,7 +11,6 @@
 <div class="max-w-3xl mx-auto px-2">
     <div class="mb-5">
         <h1 class="text-xl font-bold text-gray-800">Chart of Accounts</h1>
-        <p class="text-xs text-gray-400 mt-0.5">Handout §4 · 15 akun COA · Rentang 1000–6100</p>
     </div>
 
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">

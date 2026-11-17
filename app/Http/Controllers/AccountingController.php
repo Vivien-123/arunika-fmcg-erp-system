@@ -37,7 +37,14 @@ class AccountingController extends Controller
         return view('accounting.invoices.show', compact('invoice', 'auditLogs', 'related'));
     }
 
-    public function invoiceCreate() { return view('accounting.invoices.create'); }
+    public function invoiceCreate()
+    {
+        if (!auth()->user()->canEdit()) {
+            return redirect()->route('accounting.invoices.index')
+                ->with('error', 'Role Anda hanya dapat melihat data (view-only). Pembuatan invoice tidak diizinkan.');
+        }
+        return view('accounting.invoices.create');
+    }
 
     public function invoiceStore(Request $request)
     {
@@ -120,6 +127,10 @@ class AccountingController extends Controller
     // ── S-12: Register Payment ─────────────────────────────────────────────
     public function paymentCreate(int $invoiceId)
     {
+        if (!auth()->user()->canEdit()) {
+            return redirect()->route('accounting.invoices.index')
+                ->with('error', 'Role Anda hanya dapat melihat data (view-only). Registrasi pembayaran tidak diizinkan.');
+        }
         $invoice = Invoice::findOrFail($invoiceId);
         return view('accounting.payments.create', compact('invoice'));
     }
@@ -155,6 +166,10 @@ class AccountingController extends Controller
     // ── S-16: Credit Note ─────────────────────────────────────────────────
     public function creditNoteCreate(int $invoiceId)
     {
+        if (!auth()->user()->canEdit()) {
+            return redirect()->route('accounting.invoices.index')
+                ->with('error', 'Role Anda hanya dapat melihat data (view-only). Credit Note tidak dapat dibuat.');
+        }
         $invoice = Invoice::with('items')->findOrFail($invoiceId);
         $maxQty  = $invoice->maxCreditableQty();
         return view('accounting.credit-notes.create', compact('invoice', 'maxQty'));

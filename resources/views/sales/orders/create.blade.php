@@ -28,7 +28,6 @@
 
         {{-- ① Title --}}
         <div class="px-5 py-4 border-b bg-gray-50">
-            <span class="text-xs text-gray-400">F-05, F-06, F-10, F-22 · S-05</span>
             <h1 class="text-lg font-bold text-gray-800 mt-0.5">① Quotation Baru</h1>
             <p class="text-xs text-gray-500">② Status: <span class="font-semibold">Draft</span></p>
         </div>
@@ -68,7 +67,7 @@
                 <div><span class="text-gray-500">Tersedia:</span> <span id="cr-available" class="font-bold text-green-700">—</span></div>
             </div>
             <p id="credit-warning" class="hidden text-red-600 font-semibold text-xs mt-1">
-                ⚠️ Melebihi credit limit — SO akan ditolak saat konfirmasi (SR-11)
+                ⚠️ Melebihi batas kredit — pesanan tidak dapat dikonfirmasi.
             </p>
         </div>
 

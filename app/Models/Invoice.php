@@ -67,6 +67,26 @@ class Invoice extends Model
         return $result;
     }
 
+    /**
+     * Normalisasi payment terms bebas (mis. "30 hari", "Tunai", "14 hari")
+     * menjadi enum yang dipakai form invoice: CASH | NET14 | NET30.
+     */
+    public static function normalizePaymentTerms(?string $raw): string
+    {
+        $value = strtolower(trim((string) $raw));
+
+        if ($value === '') return 'NET14';
+        if (str_contains($value, 'tunai') || str_contains($value, 'cash') || str_contains($value, 'cod')) return 'CASH';
+        if (str_contains($value, '30')) return 'NET30';
+        if (str_contains($value, '14')) return 'NET14';
+
+        return match (strtoupper($value)) {
+            'CASH'  => 'CASH',
+            'NET30' => 'NET30',
+            default => 'NET14',
+        };
+    }
+
     /** PPN 11% half-up */
     public static function calculateTax(int $netAmount): int
     {

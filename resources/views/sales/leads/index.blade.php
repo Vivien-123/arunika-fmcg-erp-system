@@ -6,8 +6,10 @@
         ['label'=>'Pipeline',  'url'=>route('crm.leads.index'),      'icon'=>'📋'],
     ];
     if (auth()->user()->canEdit()) {
-        $sidebarMenu[] = ['label'=>'Buat Lead', 'url'=>route('crm.leads.index').'#new', 'icon'=>'➕'];
+        $sidebarMenu[] = ['label'=>'Buat Lead', 'url'=>route('crm.leads.index', ['view'=>'form']).'#new', 'icon'=>'➕'];
     }
+    $view = in_array($view ?? 'kanban', ['kanban', 'list', 'form'], true) ? $view : 'kanban';
+    $viewLink = fn($mode) => route('crm.leads.index', array_merge(request()->query(), ['view' => $mode]));
 @endphp
 
 @section('breadcrumb')
@@ -23,21 +25,24 @@
     {{-- Header bar --}}
     <div class="flex items-center justify-between mb-4">
         <div>
-            <h1 class="text-xl font-bold text-gray-800">① CRM Pipeline</h1>
-            <p class="text-xs text-gray-500 mt-0.5">F-04 · S-04 · SR-19 · T-07, T-08</p>
+            <h1 class="page-title">CRM Pipeline</h1>
         </div>
         <div class="flex gap-2">
-            {{-- Views badge --}}
-            <span class="bg-[#714B67] text-white text-xs px-3 py-1.5 rounded font-medium">Kanban</span>
-            <span class="bg-white border text-gray-600 text-xs px-3 py-1.5 rounded">List</span>
-            <a href="{{ route('crm.leads.index') }}" class="bg-white border text-gray-600 text-xs px-3 py-1.5 rounded hover:bg-gray-50">Form</a>
+            @foreach(['kanban'=>'Kanban', 'list'=>'List', 'form'=>'Form'] as $mode => $label)
+            <a href="{{ $viewLink($mode) }}" aria-current="{{ $view === $mode ? 'page' : 'false' }}"
+               class="text-xs px-3 py-1.5 rounded border transition {{ $view === $mode ? 'bg-[#714B67] border-[#714B67] text-white font-medium' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50' }}">
+                {{ $label }}
+            </a>
+            @endforeach
         </div>
     </div>
 
     {{-- Control Panel: Search / Filters --}}
+    @if($view !== 'form')
     <form method="GET" class="bg-white border rounded-lg p-3 mb-4 flex flex-wrap gap-2 items-end">
+        <input type="hidden" name="view" value="{{ $view }}">
         <div class="flex-1 min-w-[180px]">
-            <label class="block text-xs text-gray-500 mb-0.5">Search</label>
+            <label class="block text-xs text-gray-500 mb-0.5">Cari prospek</label>
             <input type="text" name="search" value="{{ $filters['search'] ?? '' }}"
                    placeholder="ID Lead / Pelanggan"
                    class="w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]">
@@ -55,8 +60,9 @@
         <button type="submit" class="bg-[#714B67] text-white px-3 py-1.5 rounded text-sm hover:bg-[#5c3d56] transition">
             Terapkan
         </button>
-        <a href="{{ route('crm.leads.index') }}" class="text-gray-500 text-sm px-3 py-1.5 hover:underline">Reset</a>
+        <a href="{{ route('crm.leads.index', ['view'=>$view]) }}" class="text-gray-500 text-sm px-3 py-1.5 hover:underline">Reset</a>
     </form>
+    @endif
 
     @if(session('success'))
         <div class="bg-green-50 border border-green-200 text-green-800 rounded px-4 py-2 mb-4 text-sm">✅ {{ session('success') }}</div>
@@ -65,6 +71,7 @@
         <div class="bg-red-50 border border-red-200 text-red-800 rounded px-4 py-2 mb-4 text-sm">⛔ {{ session('error') }}</div>
     @endif
 
+    @if($view === 'kanban')
     {{-- ④ Kanban Board --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         @foreach([
@@ -109,10 +116,39 @@
         </div>
         @endforeach
     </div>
-
-    {{-- Buat Lead baru --}}
+    @elseif($view === 'list')
+    <div class="bg-white border rounded-lg overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+                <tr>
+                    <th class="px-4 py-3 text-left">ID Lead</th>
+                    <th class="px-4 py-3 text-left">Pelanggan</th>
+                    <th class="px-4 py-3 text-left">Stage</th>
+                    <th class="px-4 py-3 text-right">Potensi Pendapatan</th>
+                    <th class="px-4 py-3 text-right">Detail</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                @forelse($leads as $lead)
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 font-mono text-xs">{{ $lead->id }}</td>
+                    <td class="px-4 py-3">{{ $lead->partner_name ?? '— Tanpa Pelanggan —' }}</td>
+                    <td class="px-4 py-3 capitalize">{{ $lead->stage }}</td>
+                    <td class="px-4 py-3 text-right">Rp{{ number_format($lead->expected_revenue) }}</td>
+                    <td class="px-4 py-3 text-right">
+                        <a href="{{ route('crm.leads.show', $lead->id) }}" class="text-[#714B67] hover:underline">Buka →</a>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="5" class="px-4 py-8 text-center text-sm text-gray-400">Tidak ada lead yang cocok.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+    @else
     @if(auth()->user()->canEdit())
-    <div class="mt-6 bg-white border rounded-xl p-5" id="new">
+    {{-- Buat Lead baru --}}
+    <div class="bg-white border rounded-xl p-5" id="new">
         <h2 class="font-semibold text-gray-700 mb-3">➕ Buat Lead Baru</h2>
         <form method="POST" action="{{ route('crm.leads.store') }}" class="flex flex-wrap gap-3 items-end">
             @csrf
@@ -135,6 +171,11 @@
             </button>
         </form>
     </div>
+    @else
+    <div class="bg-white border rounded-lg p-6 text-center text-sm text-gray-500">
+        Role Anda hanya dapat melihat data dan tidak dapat membuat lead.
+    </div>
+    @endif
     @endif
 
     {{-- ⑤ Log Notes hint --}}

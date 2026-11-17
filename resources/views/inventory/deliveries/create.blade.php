@@ -13,7 +13,6 @@
 <div class="max-w-2xl space-y-4">
     <div>
         <h1 class="text-lg font-semibold text-gray-800">Buat Delivery Order</h1>
-        <p class="text-xs text-gray-400 mt-0.5">Pilih SO Confirmed untuk membuat DO (FEFO picking)</p>
     </div>
 
     <form method="POST" action="{{ route('inventory.deliveries.store') }}" class="space-y-3">
@@ -77,7 +76,7 @@
         @endif
 
         <div class="bg-blue-50 border border-blue-200 rounded p-2 text-xs text-blue-700">
-            ℹ️ SR-07/SR-09: FEFO lot picking otomatis. SR-04: Stok negatif diblokir. SR-17: Validasi wajib employee Warehouse Aktif.
+            ℹ️ Sistem memilih lot dengan tanggal kedaluwarsa terdekat. Pengiriman dibatasi oleh stok tersedia dan harus divalidasi karyawan gudang aktif.
         </div>
 
         <div class="flex gap-3">

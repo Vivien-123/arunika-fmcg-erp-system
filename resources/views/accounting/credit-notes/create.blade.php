@@ -9,7 +9,6 @@
     <div class="mb-5">
         <p class="text-xs text-gray-400 mb-1"><a href="{{ route('accounting.invoices.show', $invoice->id) }}" class="hover:underline">{{ $invoice->document_number }}</a> › Credit Note</p>
         <h1 class="text-xl font-bold text-gray-800">Buat Credit Note</h1>
-        <p class="text-xs text-gray-400 mt-0.5">S-16 · F-16 · SR-13: Max qty = invoiced − already credited</p>
     </div>
 
     @if($errors->any())
@@ -17,7 +16,7 @@
     @endif
 
     <div class="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 mb-4 text-xs text-orange-700">
-        ⚠ SR-13: Credit Note maksimal qty yang sudah ditagih dan belum dikreditkan.
+        ⚠ Jumlah nota kredit tidak boleh melebihi jumlah yang telah ditagihkan dan belum dikreditkan.
     </div>
 
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">

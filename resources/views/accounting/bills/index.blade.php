@@ -12,7 +12,6 @@
     <div class="flex items-center justify-between mb-5">
         <div>
             <h1 class="page-title">Vendor Bills</h1>
-            <p class="page-sub">S-11 · F-13 · SR-06: 3-Way Match PO + Receipt + Bill</p>
         </div>
     </div>
 

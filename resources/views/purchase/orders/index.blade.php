@@ -15,7 +15,6 @@
     <div class="flex items-center justify-between">
         <div>
             <h1 class="page-title">Purchase Orders</h1>
-            <p class="page-sub">RFQ → Konfirmasi → Penerimaan Barang · SR-21 price lock · SR-06 3-way match</p>
         </div>
         @if(auth()->user()->canEdit())
         <a href="{{ route('purchase.orders.create') }}"

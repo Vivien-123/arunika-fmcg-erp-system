@@ -10,8 +10,13 @@
 @endsection
 
 @section('control_panel_extra')
-    <button class="text-xs text-gray-600 border border-gray-300 rounded px-3 py-1 hover:bg-gray-50 transition">Last 30 days ▾</button>
-    <button class="text-xs bg-[#714B67] text-white rounded px-3 py-1 hover:bg-[#5c3d56] transition font-medium">Export</button>
+    <span class="text-xs text-gray-500 border border-gray-200 bg-gray-50 rounded px-3 py-1">
+        Snapshot per {{ now()->format('d M Y H:i') }}
+    </span>
+    <a href="{{ route('reporting.dashboard.export') }}"
+       class="text-xs bg-[#714B67] text-white rounded px-3 py-1 hover:bg-[#5c3d56] transition font-medium">
+        Export CSV
+    </a>
 @endsection
 
 @section('content')
@@ -30,7 +35,6 @@
                 <span class="text-2xl font-bold text-gray-800">{{ number_format($totalOnHand) }}</span>
                 <span class="text-xs text-gray-400">unit</span>
             </div>
-            <p class="text-[10px] text-gray-400">Baseline · Klik drill-down (SR-19)</p>
         </div>
 
         {{-- Card 2: Stock Value --}}
@@ -40,7 +44,6 @@
                 <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wide">Stock Value</p>
             </div>
             <span class="text-xl font-bold text-gray-800">Rp{{ number_format($stockValue) }}</span>
-            <p class="text-[10px] text-gray-400">Standard Cost × Qty · {{ $stocks->count() }} SKU</p>
         </div>
 
         {{-- Card 3: AR / Piutang --}}
@@ -50,7 +53,6 @@
                 <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wide">AR / Piutang</p>
             </div>
             <span class="text-xl font-bold text-gray-800">Rp{{ number_format($ar) }}</span>
-            <p class="text-[10px] text-amber-600">↗ Open AR (opening balance)</p>
         </div>
 
         {{-- Card 4: AP / Hutang --}}
@@ -60,7 +62,6 @@
                 <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wide">AP / Hutang</p>
             </div>
             <span class="text-xl font-bold text-gray-800">Rp{{ number_format($ap) }}</span>
-            <p class="text-[10px] text-blue-600">Open AP (opening balance)</p>
         </div>
 
         {{-- Card 5: Saldo Bank --}}
@@ -70,37 +71,32 @@
                 <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wide">Saldo Bank</p>
             </div>
             <span class="text-xl font-bold text-gray-800">Rp{{ number_format($bank) }}</span>
-            <p class="text-[10px] text-green-600">✓ Opening balance</p>
         </div>
     </div>
 
-    {{-- SR-19: Open Orders KPI row --}}
+    {{-- Open Orders KPI row --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div class="bg-white rounded-lg border border-blue-200 p-4 flex flex-col gap-1">
             <p class="text-[10px] text-blue-500 uppercase font-bold tracking-wide">Open Sales Orders</p>
             <span class="text-xl font-bold text-gray-800">{{ $openSOs->cnt ?? 0 }}</span>
             <span class="text-xs text-gray-500">Gross Rp{{ number_format($openSOs->total ?? 0) }}</span>
-            <p class="text-[10px] text-blue-400">Status: confirmed/done · SR-19</p>
         </div>
         <div class="bg-white rounded-lg border border-amber-200 p-4 flex flex-col gap-1">
             <p class="text-[10px] text-amber-500 uppercase font-bold tracking-wide">Open Purchase Orders</p>
             <span class="text-xl font-bold text-gray-800">{{ $openPOs->cnt ?? 0 }}</span>
             <span class="text-xs text-gray-500">Gross Rp{{ number_format($openPOs->total ?? 0) }}</span>
-            <p class="text-[10px] text-amber-400">Status: confirmed · SR-19</p>
         </div>
         <div class="bg-white rounded-lg border border-purple-200 p-4 flex flex-col gap-1">
             <p class="text-[10px] text-purple-500 uppercase font-bold tracking-wide">Reserved Stock</p>
             <span class="text-xl font-bold text-gray-800">{{ number_format($totalReserved) }}</span>
-            <span class="text-xs text-gray-500">unit terkunci dari SO Confirmed</span>
-            <p class="text-[10px] text-purple-400">SR-22 · Available = On Hand − Reserved</p>
+            <span class="text-xs text-gray-500">unit</span>
         </div>
-        {{-- T-34: Draft invoices must NOT inflate AR --}}
         <div class="bg-white rounded-lg border {{ $draftInvoiceCount > 0 ? 'border-orange-300' : 'border-gray-200' }} p-4 flex flex-col gap-1">
             <p class="text-[10px] {{ $draftInvoiceCount > 0 ? 'text-orange-500' : 'text-gray-400' }} uppercase font-bold tracking-wide">Draft Invoices</p>
             <span class="text-xl font-bold {{ $draftInvoiceCount > 0 ? 'text-orange-700' : 'text-gray-400' }}">{{ $draftInvoiceCount }}</span>
             <span class="text-xs text-gray-500">Rp{{ number_format($draftInvoiceValue) }} — NOT in AR</span>
             <p class="text-[10px] {{ $draftInvoiceCount > 0 ? 'text-orange-400' : 'text-green-500' }}">
-                {{ $draftInvoiceCount > 0 ? '⚠ Belum diposting' : '✓ T-34: AR tidak menggelembung' }}
+                {{ $draftInvoiceCount > 0 ? '⚠ Belum diposting' : '✓ Tidak ada tagihan draft' }}
             </p>
         </div>
     </div>
@@ -111,7 +107,6 @@
         {{-- Stock by Warehouse --}}
         <div class="bg-white rounded-lg border border-gray-200 p-4">
             <h3 class="text-sm font-semibold text-gray-800">Stock by Warehouse</h3>
-            <p class="text-xs text-gray-400 mb-4">Distribusi {{ number_format($totalOnHand) }} unit across 2 lokasi</p>
 
             {{-- WH-JKT bar --}}
             <div class="mb-4">
@@ -149,7 +144,6 @@
         {{-- Credit Exposure Watchlist --}}
         <div class="bg-white rounded-lg border border-gray-200 p-4">
             <h3 class="text-sm font-semibold text-gray-800">Credit Exposure Watchlist</h3>
-            <p class="text-xs text-gray-400 mb-4">SR-11 monitoring · Hard block at 100%</p>
 
             @php
                 $creditCustomers = \App\Models\Customer::where('open_ar', '>', 0)->orWhereHas('salesOrders', function($q){ $q->whereIn('status', ['confirmed']); })->get();
@@ -181,11 +175,12 @@
         </div>
     </div>
 
-    {{-- Recent Audit Trail --}}
+    {{-- Recent Audit Trail — hanya MasterAdmin & Owner --}}
+    @if(auth()->user()->canViewAuditLog())
     <div class="bg-white rounded-lg border border-gray-200 mb-6 overflow-hidden">
         <div class="px-4 py-3 border-b border-gray-100">
             <h3 class="text-sm font-semibold text-gray-800">Recent Audit Trail</h3>
-            <p class="text-xs text-gray-400">{{ $recentLogs->count() }} aktivitas terakhir · Klik untuk drill-down</p>
+            <p class="text-xs text-gray-400">{{ $recentLogs->count() }} aktivitas terakhir</p>
         </div>
 
         @if($recentLogs->isEmpty())
@@ -231,12 +226,13 @@
         </div>
         @endif
     </div>
+    @endif
 
     {{-- Stock Overview Table --}}
     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div class="px-4 py-3 border-b border-gray-100">
             <h3 class="text-sm font-semibold text-gray-800">Stock Overview (List View)</h3>
-            <p class="text-xs text-gray-400">SR-22: Available = On Hand − Reserved</p>
+            <p class="text-xs text-gray-400">Stok tersedia setelah reservasi.</p>
         </div>
 
         <div class="overflow-x-auto">
@@ -288,21 +284,6 @@
             </table>
         </div>
 
-        {{-- Pagination --}}
-        <div class="px-4 py-2 border-t border-gray-100 flex items-center justify-between">
-            <span class="text-[10px] text-gray-400">Showing {{ $stocks->count() }} of {{ $stocks->count() }} rows · Page 1 of 1</span>
-            <div class="flex items-center gap-1">
-                <button class="text-xs text-gray-400 border border-gray-200 rounded px-2 py-0.5" disabled>◀ Prev</button>
-                <span class="text-xs text-gray-500 px-2">Page 1 of 1</span>
-                <button class="text-xs text-gray-400 border border-gray-200 rounded px-2 py-0.5" disabled>Next ▶</button>
-            </div>
-        </div>
-    </div>
-
-    {{-- Footer note --}}
-    <div class="mt-4 bg-gray-50 rounded-lg border border-gray-200 px-4 py-2.5 flex items-center justify-between">
-        <span class="text-xs text-gray-500">📋 KPI hanya dari dokumen Posted/Done (SR-19) · Draft tidak dihitung · Semua angka dapat di-drill-down</span>
-        <span class="text-[10px] text-gray-400 italic">php artisan fmcg:verify-checksum → 34/34 PASS</span>
     </div>
 
 </div>

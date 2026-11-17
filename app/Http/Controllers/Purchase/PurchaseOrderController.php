@@ -44,6 +44,10 @@ class PurchaseOrderController extends Controller
 
     public function create()
     {
+        if (!auth()->user()->canEdit()) {
+            return redirect()->route('purchase.orders.index')
+                ->with('error', 'Role Anda hanya dapat melihat data (view-only). Pembuatan Purchase Order tidak diizinkan.');
+        }
         $vendors   = Vendor::orderBy('name')->get();
         $products  = Product::orderBy('name')->get();
         $pricelist = VendorPricelist::all()->groupBy('vendor_id');
@@ -121,6 +125,10 @@ class PurchaseOrderController extends Controller
 
     public function createReceipt(string $id)
     {
+        if (!auth()->user()->canEdit()) {
+            return redirect()->route('purchase.orders.show', $id)
+                ->with('error', 'Role Anda hanya dapat melihat data (view-only). Goods Receipt tidak dapat dibuat.');
+        }
         $order = PurchaseOrder::with(['vendor', 'lines.product'])->findOrFail($id);
         if ($order->status !== 'confirmed') {
             return redirect()->back()->with('error', 'PO harus Confirmed sebelum buat Receipt.');

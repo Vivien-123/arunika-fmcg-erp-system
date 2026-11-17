@@ -2,15 +2,23 @@
 @section('title','Employee — '.$employee->name)
 @php
     $currentApp  = 'Employees';
-    $sidebarMenu = [
-        ['label'=>'Semua Pegawai','url'=>route('employees.index'),'icon'=>'👥'],
-        ['label'=>'Departemen',   'url'=>route('employees.index').'?view=dept','icon'=>'🏢'],
-    ];
+    $sidebarMenu = $canBrowseDirectory
+        ? [
+            ['label'=>'Semua Pegawai','url'=>route('employees.index'),'icon'=>'👥'],
+            ['label'=>'Departemen',   'url'=>route('employees.index').'?view=dept','icon'=>'🏢'],
+        ]
+        : [
+            ['label'=>'Profil Saya','url'=>route('employees.me'),'icon'=>'👤'],
+        ];
 @endphp
 
 @section('breadcrumb')
     <span class="mx-1 text-gray-400">›</span>
-    <a href="{{ route('employees.index') }}" class="hover:text-[#714B67]">Employees</a>
+    @if($canBrowseDirectory)
+        <a href="{{ route('employees.index') }}" class="hover:text-[#714B67]">Employees</a>
+    @else
+        <a href="{{ route('employees.me') }}" class="hover:text-[#714B67]">Profil Saya</a>
+    @endif
     <span class="mx-1 text-gray-400">›</span>
     <span class="text-gray-700">{{ $employee->name }}</span>
 @endsection
@@ -29,7 +37,9 @@
     @if($isHR && $employee->privateRecord)
         <x-smart-button icon="🔐" label="Data Privat" href="#private" color="purple" />
     @endif
+    @if($canBrowseDirectory)
     <x-smart-button icon="🏢" label="{{ $employee->department?->name }}" href="{{ route('employees.index') }}?dept={{ $employee->department_id }}" color="blue" />
+    @endif
 @endsection
 
 @section('content')
@@ -67,7 +77,15 @@
             <div class="grid grid-cols-2 gap-4 text-sm">
                 <div><label class="block text-xs text-gray-400 uppercase tracking-wide mb-0.5">Employee ID</label><p class="font-mono font-semibold text-gray-800">{{ $employee->id }}</p></div>
                 <div><label class="block text-xs text-gray-400 uppercase tracking-wide mb-0.5">Nama Lengkap</label><p class="text-gray-800">{{ $employee->name }}</p></div>
-                <div><label class="block text-xs text-gray-400 uppercase tracking-wide mb-0.5">Departemen</label><p><a href="{{ route('employees.index') }}?dept={{ $employee->department_id }}" class="text-[#714B67] hover:underline">{{ $employee->department?->name ?? $employee->department_id }}</a></p></div>
+                <div><label class="block text-xs text-gray-400 uppercase tracking-wide mb-0.5">Departemen</label>
+                    <p>
+                        @if($canBrowseDirectory)
+                        <a href="{{ route('employees.index') }}?dept={{ $employee->department_id }}" class="text-[#714B67] hover:underline">{{ $employee->department?->name ?? $employee->department_id }}</a>
+                        @else
+                        <span class="text-gray-800">{{ $employee->department?->name ?? $employee->department_id }}</span>
+                        @endif
+                    </p>
+                </div>
                 <div><label class="block text-xs text-gray-400 uppercase tracking-wide mb-0.5">Jabatan</label><p class="text-gray-800">{{ $employee->job_title }}</p></div>
                 <div><label class="block text-xs text-gray-400 uppercase tracking-wide mb-0.5">Lokasi</label><p class="text-gray-800">{{ $employee->location }}</p></div>
                 <div><label class="block text-xs text-gray-400 uppercase tracking-wide mb-0.5">Status</label><p class="{{ $employee->status==='Aktif' ? 'text-green-700 font-semibold':'text-red-600 font-semibold' }}">{{ $employee->status }}</p></div>
@@ -92,7 +110,7 @@
         <div class="px-6 py-3 border-b border-purple-100 bg-purple-50 flex items-center gap-2">
             <span>🔐</span>
             <h3 class="text-sm font-semibold text-purple-700">Data Privat Pegawai</h3>
-            <span class="text-xs text-purple-500 ml-auto">Hanya role HR (SR-15)</span>
+            <span class="text-xs text-purple-500 ml-auto">Hanya dapat dilihat oleh HR</span>
         </div>
         <div class="px-6 py-4">
             @if($privateRecord)
@@ -110,15 +128,9 @@
     @else
     <div class="bg-gray-50 rounded-xl border border-gray-200 px-6 py-4 text-sm text-gray-500 flex items-center gap-2">
         <span>🔒</span>
-        <span>Data pribadi hanya dapat diakses oleh role <strong>HR</strong>. (SR-15)</span>
+        <span>Data pribadi hanya dapat diakses oleh <strong>HR</strong>.</span>
     </div>
     @endif
-
-    {{-- Related Docs --}}
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4">
-        <x-related-docs :docs="[]" />
-        <p class="text-xs text-gray-400 italic mt-2">Related documents akan muncul setelah modul lain diimplementasi.</p>
-    </div>
 
     {{-- Log Notes --}}
     <div id="log-notes" class="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4">

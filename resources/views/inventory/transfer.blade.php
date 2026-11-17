@@ -13,7 +13,6 @@
 <div class="max-w-2xl space-y-4">
     <div>
         <h1 class="text-lg font-semibold text-gray-800">Internal Transfer</h1>
-        <p class="text-xs text-gray-400 mt-0.5">SR-14: WH-JKT ↔ HUB-BDG · Company total tidak berubah · Tidak ada jurnal AR/AP/PPN</p>
     </div>
 
     <form method="POST" action="{{ route('inventory.transfer.store') }}" class="space-y-3">
@@ -68,13 +67,12 @@
                 <p class="font-semibold text-gray-600">Stok saat ini:</p>
                 <p>WH-JKT: <strong id="whJktQty" class="tnum text-blue-700">-</strong> unit &nbsp;|&nbsp; HUB-BDG: <strong id="hubBdgQty" class="tnum text-blue-700">-</strong> unit</p>
                 <p>Reserved: <strong id="reservedQty" class="tnum text-orange-600">-</strong> &nbsp;|&nbsp; Company Total: <strong id="totalQty" class="tnum">-</strong></p>
-                <p class="text-[10px] text-gray-400">SR-22: Available WH-JKT = WH-JKT On Hand − Reserved</p>
             </div>
         </div>
 
         <div class="bg-blue-50 border border-blue-200 rounded p-2 text-xs text-blue-700">
-            ℹ️ SR-14: Nilai stok (standard_value) tidak berubah karena company total tetap sama. Tidak ada jurnal akuntansi.
-            SR-22: Stok negatif diblokir.
+            ℹ️ Jumlah stok perusahaan tidak berubah; hanya lokasi penyimpanan yang diperbarui.
+            Transfer tidak dapat melebihi stok tersedia.
         </div>
 
         <div class="flex gap-3">
