@@ -35,7 +35,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Tgl Order</label>
-                    <input type="date" name="order_date" value="{{ date('Y-m-d') }}"
+                    <input type="date" name="order_date" value="{{ old('order_date', date('Y-m-d')) }}"
                         class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#714B67]">
                 </div>
             </div>
@@ -81,9 +81,10 @@
 <script>
 const pricelist = @json($pricelist);
 const products  = @json($products->keyBy('variant_sku'));
+const previousLines = @json(array_values(old('lines', [])));
 let lineCount   = 0;
 
-function addLine() {
+function addLine(previousLine = null) {
     const vendorId = document.getElementById('vendorSelect').value;
     lineCount++;
     const idx = lineCount;
@@ -94,10 +95,6 @@ function addLine() {
             ? pricelist[vendorId].find(pl => pl.variant_sku === p.variant_sku).unit_price : p.cost;
         return `<option value="${p.variant_sku}" data-price="${price}">${p.variant_sku} — ${p.name} (${p.unit})</option>`;
     }).join('');
-
-    const firstProduct = Object.values(products)[0];
-    const vendorPl = pricelist[vendorId] || [];
-    const defaultPrice = vendorPl.length > 0 && vendorPl[0].unit_price ? vendorPl[0].unit_price : firstProduct?.cost ?? 0;
 
     const tr = document.createElement('tr');
     tr.id = `line_${idx}`;
@@ -125,6 +122,16 @@ function addLine() {
         </td>
     `;
     body.appendChild(tr);
+
+    if (previousLine) {
+        const skuSelect = tr.querySelector(`select[name="lines[${idx}][variant_sku]"]`);
+        const quantityInput = tr.querySelector(`input[name="lines[${idx}][quantity]"]`);
+        const priceInput = document.getElementById(`price_${idx}`);
+        skuSelect.value = previousLine.variant_sku || '';
+        quantityInput.value = previousLine.quantity ?? 1;
+        priceInput.value = previousLine.unit_price ?? 0;
+        calcRow(idx);
+    }
 }
 
 function onSkuChange(sel, idx) {
@@ -149,7 +156,10 @@ function updatePrices() {
     // Re-init existing rows when vendor changes
 }
 
-// Start with one empty line
-addLine();
+if (previousLines.length) {
+    previousLines.forEach(line => addLine(line));
+} else {
+    addLine();
+}
 </script>
 @endsection

@@ -49,14 +49,21 @@ class ReceiptController extends Controller
 
     public function show(string $id)
     {
-        $receipt   = Receipt::with(['purchaseOrder', 'lines.product', 'validatorEmployee'])->findOrFail($id);
+        $receipt   = Receipt::with(['purchaseOrder', 'lines.product', 'lines.productLot', 'validatorEmployee'])->findOrFail($id);
         $employees = Employee::where('department_id', 'D-WH')->where('status', 'Aktif')->get();
         return view('inventory.receipts.show', compact('receipt', 'employees'));
     }
 
     public function validateReceipt(Request $request, string $id)
     {
-        $request->validate(['validator_employee_id' => 'required|exists:employees,id']);
+        $request->validate([
+            'validator_employee_id' => 'required|exists:employees,id',
+            'lines' => 'sometimes|array',
+            'lines.*.received_qty' => 'required_with:lines|integer|min:0',
+            'lines.*.accepted_qty' => 'required_with:lines|integer|min:0',
+            'lines.*.lot_id_override' => 'nullable|string|max:100',
+            'lines.*.expiry_date_override' => 'nullable|date',
+        ]);
 
         $lineData = [];
         if ($request->has('lines')) {
@@ -64,6 +71,8 @@ class ReceiptController extends Controller
                 $lineData[(int) $lineId] = [
                     'received_qty' => (int)($data['received_qty'] ?? 0),
                     'accepted_qty' => (int)($data['accepted_qty'] ?? 0),
+                    'lot_id' => trim((string)($data['lot_id_override'] ?? '')) ?: null,
+                    'expiry_date' => $data['expiry_date_override'] ?? null,
                 ];
             }
         }
@@ -78,7 +87,7 @@ class ReceiptController extends Controller
             return redirect()->route('inventory.receipts.show', $id)
                 ->with('success', "Receipt {$id} Done — stok bertambah (accepted qty only, SR-06).");
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage());
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
         }
     }
 }

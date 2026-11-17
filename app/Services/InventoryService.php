@@ -167,7 +167,16 @@ class InventoryService
 
             foreach ($delivery->lines as $line) {
                 $doneQty = isset($doneQties[$line->id]) ? (int) $doneQties[$line->id] : (int) $line->demand_qty;
-                if ($doneQty <= 0) continue;
+                if ($doneQty < 0 || $doneQty > $line->demand_qty) {
+                    throw new \RuntimeException(
+                        "Jumlah kirim untuk {$line->variant_sku} harus antara 0 dan {$line->demand_qty}."
+                    );
+                }
+
+                if ($doneQty === 0) {
+                    $line->update(['done_qty' => 0, 'backorder_qty' => $line->demand_qty, 'lot_id' => null]);
+                    continue;
+                }
 
                 $stock = OpeningStock::where('variant_sku', $line->variant_sku)->lockForUpdate()->first();
                 if (!$stock) {
@@ -368,7 +377,7 @@ class InventoryService
     ): Receipt {
         return DB::transaction(function () use ($receiptId, $signingEmployeeId, $actorUser, $lineData) {
             // SR-16: idempotency
-            $receipt = Receipt::with('lines')->findOrFail($receiptId);
+            $receipt = Receipt::with('lines.productLot')->findOrFail($receiptId);
             if ($receipt->is_posted) {
                 throw new \RuntimeException(
                     "SR-16: Receipt {$receiptId} sudah diposting — idempotent guard."
@@ -386,12 +395,41 @@ class InventoryService
                 $receivedQty = (int)($data['received_qty'] ?? $line->ordered_qty);
                 $acceptedQty = (int)($data['accepted_qty'] ?? $receivedQty);
                 $rejectedQty = $receivedQty - $acceptedQty;
+                $lotId       = array_key_exists('lot_id', $data) ? $data['lot_id'] : $line->lot_id;
+                $expiryDate  = array_key_exists('expiry_date', $data)
+                    ? $data['expiry_date']
+                    : $line->productLot?->expiry_date?->toDateString();
+
+                if ($receivedQty > $line->ordered_qty) {
+                    throw new \RuntimeException(
+                        "Jumlah diterima untuk {$line->variant_sku} melebihi jumlah pesanan."
+                    );
+                }
+                if ($acceptedQty > $receivedQty) {
+                    throw new \RuntimeException(
+                        "Jumlah diterima untuk {$line->variant_sku} tidak boleh melebihi jumlah yang diterima."
+                    );
+                }
+                if ($acceptedQty > 0 && (bool) $lotId !== (bool) $expiryDate) {
+                    throw new \RuntimeException(
+                        "Lot dan tanggal kedaluwarsa harus diisi berpasangan untuk {$line->variant_sku}."
+                    );
+                }
 
                 $line->update([
                     'received_qty' => $receivedQty,
                     'accepted_qty' => $acceptedQty,
                     'rejected_qty' => $rejectedQty,
+                    'lot_id' => $acceptedQty > 0 ? $lotId : null,
                 ]);
+
+                if ($line->purchase_order_line_id) {
+                    PurchaseOrderLine::where('id', $line->purchase_order_line_id)->update([
+                        'received_qty' => DB::raw("received_qty + {$receivedQty}"),
+                        'accepted_qty' => DB::raw("accepted_qty + {$acceptedQty}"),
+                        'rejected_qty' => DB::raw("rejected_qty + {$rejectedQty}"),
+                    ]);
+                }
 
                 if ($acceptedQty <= 0) continue;
 
@@ -411,27 +449,33 @@ class InventoryService
                 $valueIncrease = $acceptedQty * $freshStock->standard_cost;
                 $stock->update(['standard_value' => $freshStock->company_total * $freshStock->standard_cost]);
 
-                // Update PO line accepted/received qty
-                if ($line->purchase_order_line_id) {
-                    PurchaseOrderLine::where('id', $line->purchase_order_line_id)->update([
-                        'received_qty' => DB::raw("received_qty + {$receivedQty}"),
-                        'accepted_qty' => DB::raw("accepted_qty + {$acceptedQty}"),
-                        'rejected_qty' => DB::raw("rejected_qty + {$rejectedQty}"),
-                    ]);
-                }
-
                 // Lot creation for lot-tracked SKUs (SR-09)
-                if ($line->lot_id && $line->expiry_date) {
-                    \App\Models\ProductLot::updateOrCreate(
-                        ['lot_id' => $line->lot_id],
-                        [
+                if ($lotId && $expiryDate) {
+                    $lot = ProductLot::where('lot_id', $lotId)->lockForUpdate()->first();
+                    $expiryDate = \Illuminate\Support\Carbon::parse($expiryDate)->toDateString();
+
+                    if ($lot) {
+                        if (
+                            $lot->variant_sku !== $line->variant_sku
+                            || $lot->location !== $receipt->destination_location
+                            || $lot->expiry_date?->toDateString() !== $expiryDate
+                        ) {
+                            throw new \RuntimeException(
+                                "Lot {$lotId} sudah terdaftar dengan produk, lokasi, atau tanggal kedaluwarsa berbeda."
+                            );
+                        }
+
+                        $lot->increment('qty', $acceptedQty);
+                    } else {
+                        ProductLot::create([
+                            'lot_id'           => $lotId,
                             'variant_sku'      => $line->variant_sku,
                             'location'         => $receipt->destination_location,
                             'qty'              => $acceptedQty,
-                            'expiry_date'      => $line->expiry_date,
+                            'expiry_date'      => $expiryDate,
                             'selection_policy' => 'FEFO',
-                        ]
-                    );
+                        ]);
+                    }
                 }
 
                 // GR journal: Dr 1300 Persediaan / Cr 1350 Stock Interim (confirmed answer 9)

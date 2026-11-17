@@ -61,7 +61,7 @@ class DeliveryController extends Controller
             return redirect()->route('inventory.deliveries.show', $delivery->id)
                 ->with('success', "Delivery Order {$delivery->id} dibuat.");
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage());
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
         }
     }
 
@@ -89,6 +89,8 @@ class DeliveryController extends Controller
 
         $request->validate([
             'validator_employee_id' => 'required|exists:employees,id',
+            'done_qties' => 'sometimes|array',
+            'done_qties.*' => 'required|integer|min:0',
         ]);
 
         // Build done_qties from request
@@ -109,7 +111,7 @@ class DeliveryController extends Controller
             return redirect()->route('inventory.deliveries.show', $id)
                 ->with('success', "Delivery {$id} berhasil divalidasi — stok dikurangi, COGS diposting.");
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage());
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
         }
     }
 }

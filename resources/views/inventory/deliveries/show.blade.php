@@ -100,10 +100,10 @@
                         @if($delivery->status !== 'done' && auth()->user()->canEdit())
                         <input type="number" name="done_qties[{{ $line->id }}]"
                             min="0" max="{{ $si ? $si['available'] : $line->demand_qty }}"
-                            value="{{ $line->done_qty ?: $line->demand_qty }}"
+                            value="{{ old('done_qties.'.$line->id, $line->done_qty ?: $line->demand_qty) }}"
                             class="w-16 border border-gray-300 rounded px-1 py-0.5 text-center focus:outline-none focus:ring-1 focus:ring-[#714B67]">
                         @else
-                        <span class="tnum font-medium text-green-700">{{ $line->done_qty ?: $line->demand_qty }}</span>
+                        <span class="tnum font-medium text-green-700">{{ $delivery->status === 'done' ? $line->done_qty : ($line->done_qty ?: $line->demand_qty) }}</span>
                         @endif
                     </td>
                     <td class="px-4 py-2 text-center tnum text-amber-600">{{ $line->backorder_qty ?: '—' }}</td>
@@ -136,7 +136,7 @@
                         class="text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#714B67]">
                         <option value="">-- Pilih Validator --</option>
                         @foreach($employees as $emp)
-                        <option value="{{ $emp->id }}">{{ $emp->id }} — {{ $emp->name }} ({{ $emp->job_title }})</option>
+                        <option value="{{ $emp->id }}" @selected(old('validator_employee_id') == $emp->id)>{{ $emp->id }} — {{ $emp->name }} ({{ $emp->job_title }})</option>
                         @endforeach
                     </select>
                     @if($employees->isEmpty())

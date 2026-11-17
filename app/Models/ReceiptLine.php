@@ -15,7 +15,7 @@ class ReceiptLine extends Model
     protected $fillable = [
         'receipt_id', 'purchase_order_line_id', 'product_id', 'variant_sku',
         'product_name', 'unit', 'ordered_qty', 'received_qty',
-        'accepted_qty', 'rejected_qty', 'lot_id', 'expiry_date',
+        'accepted_qty', 'rejected_qty', 'lot_id',
     ];
 
     protected $casts = [
@@ -23,7 +23,6 @@ class ReceiptLine extends Model
         'received_qty' => 'integer',
         'accepted_qty' => 'integer',
         'rejected_qty' => 'integer',
-        'expiry_date'  => 'date',
     ];
 
     public function receipt()
@@ -34,5 +33,10 @@ class ReceiptLine extends Model
     public function product()
     {
         return $this->belongsTo(Product::class, 'variant_sku', 'variant_sku');
+    }
+
+    public function productLot()
+    {
+        return $this->belongsTo(ProductLot::class, 'lot_id', 'lot_id');
     }
 }

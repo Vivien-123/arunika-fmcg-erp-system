@@ -92,19 +92,19 @@
                     <td class="px-4 py-2 text-center">
                         @if($receipt->status !== 'done' && auth()->user()->canEdit())
                         <input type="number" name="lines[{{ $line->id }}][received_qty]"
-                            min="0" max="{{ $line->ordered_qty }}" value="{{ $line->received_qty ?: $line->ordered_qty }}"
+                            min="0" max="{{ $line->ordered_qty }}" value="{{ old('lines.'.$line->id.'.received_qty', $line->received_qty ?: $line->ordered_qty) }}"
                             class="w-14 border border-gray-300 rounded px-1 py-0.5 text-center focus:outline-none focus:ring-1 focus:ring-[#714B67]">
                         @else
-                        <span class="tnum">{{ $line->received_qty ?: $line->ordered_qty }}</span>
+                        <span class="tnum">{{ $receipt->status === 'done' ? $line->received_qty : ($line->received_qty ?: $line->ordered_qty) }}</span>
                         @endif
                     </td>
                     <td class="px-4 py-2 text-center">
                         @if($receipt->status !== 'done' && auth()->user()->canEdit())
                         <input type="number" name="lines[{{ $line->id }}][accepted_qty]"
-                            min="0" max="{{ $line->ordered_qty }}" value="{{ $line->accepted_qty ?: $line->ordered_qty }}"
+                            min="0" max="{{ $line->ordered_qty }}" value="{{ old('lines.'.$line->id.'.accepted_qty', $line->accepted_qty ?: $line->ordered_qty) }}"
                             class="w-14 border border-gray-300 rounded px-1 py-0.5 text-center focus:outline-none focus:ring-1 focus:ring-[#714B67] border-green-300">
                         @else
-                        <span class="tnum font-medium text-green-700">{{ $line->accepted_qty ?: $line->ordered_qty }}</span>
+                        <span class="tnum font-medium text-green-700">{{ $receipt->status === 'done' ? $line->accepted_qty : ($line->accepted_qty ?: $line->ordered_qty) }}</span>
                         @endif
                     </td>
                     <td class="px-4 py-2 text-center tnum {{ $line->rejected_qty > 0 ? 'text-red-600 font-medium' : 'text-gray-400' }}">
@@ -115,13 +115,15 @@
                         <div class="flex items-center gap-1">
                             <input type="text" name="lines[{{ $line->id }}][lot_id_override]"
                                 placeholder="LOT-xxx"
+                                value="{{ old('lines.'.$line->id.'.lot_id_override', $line->lot_id) }}"
                                 class="w-20 text-xs border border-gray-300 rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-[#714B67]">
                             <input type="date" name="lines[{{ $line->id }}][expiry_date_override]"
+                                value="{{ old('lines.'.$line->id.'.expiry_date_override', $line->productLot?->expiry_date?->format('Y-m-d')) }}"
                                 class="text-xs border border-gray-300 rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-[#714B67]">
                         </div>
                         @else
                         <span class="mono text-xs text-gray-500">{{ $line->lot_id ?? '—' }}</span>
-                        @if($line->expiry_date) <span class="text-gray-400 text-[10px] ml-1">{{ $line->expiry_date->format('d M Y') }}</span> @endif
+                        @if($line->productLot?->expiry_date) <span class="text-gray-400 text-[10px] ml-1">{{ $line->productLot->expiry_date->format('d M Y') }}</span> @endif
                         @endif
                     </td>
                 </tr>
@@ -139,7 +141,7 @@
                         class="text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#714B67]">
                         <option value="">-- Pilih Validator --</option>
                         @foreach($employees as $emp)
-                        <option value="{{ $emp->id }}">{{ $emp->id }} — {{ $emp->name }} ({{ $emp->job_title }})</option>
+                        <option value="{{ $emp->id }}" @selected(old('validator_employee_id') == $emp->id)>{{ $emp->id }} — {{ $emp->name }} ({{ $emp->job_title }})</option>
                         @endforeach
                     </select>
                     @if($employees->isEmpty())
