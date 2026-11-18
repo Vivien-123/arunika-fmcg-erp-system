@@ -33,19 +33,54 @@ Sesuai ketentuan skenario mahasiswa (Halaman 2–5):
 
 ## 2. Cara Menjalankan Aplikasi
 
-Aplikasi dibangun mandiri tanpa dependensi eksternal rumit, sehingga dapat dijalankan seketika menggunakan Node.js:
+### Prasyarat
+- **PHP 8.2+** — download dari https://windows.php.net/download/
+- **Composer** — download dari https://getcomposer.org/download/
+- **PHP extensions:** `pdo_sqlite`, `mbstring`, `zip`, `fileinfo` (aktifkan di `php.ini`)
+
+### Langkah Instalasi (Windows)
 
 ```bash
-# 1. Pindah ke direktori proyek
-cd C:\Users\user\.gemini\antigravity\scratch\arunika-erp
+# 1. Clone repo
+git clone https://github.com/Vivien-123/arunika-fmcg-erp-system.git
+cd arunika-fmcg-erp-system
 
-# 2. Jalankan acceptance test otomatis (T-03 s/d T-10)
-npm test
+# 2. Jalankan setup.bat (otomatis: .env, composer, key, seed)
+setup.bat
 
-# 3. Jalankan server web lokal
-npm start
+# ATAU manual:
+copy .env.example .env
+composer install --no-interaction --optimize-autoloader
+php artisan key:generate --force
+php artisan db:master-seed
+
+# 3. Jalankan server
+php artisan serve
 ```
-Buka browser dan akses: `http://localhost:3000`
+
+Buka browser dan akses: `http://localhost:8000`
+
+### Login (password semua: `Demo2026!`)
+
+| Username | Role |
+|----------|------|
+| `master_admin` | MasterAdmin (semua modul) |
+| `owner_user` | Owner (read-only semua modul) |
+| `sales_user` | Sales (Sales, CRM) |
+| `finance_user` | Finance (Accounting, Invoicing) |
+| `warehouse_mgr` | Warehouse (Inventory, Delivery) |
+| `purchase_user` | Purchase (Purchase Orders) |
+| `hr_user` | HR (Employees) |
+
+### Verifikasi Baseline
+
+```bash
+# Verifikasi checksum baseline (34/34 PASS)
+php artisan fmcg:verify-checksum
+
+# Jalankan seluruh test T-01..T-36 (131/131 PASS)
+php artisan m2:regression
+```
 
 ---
 
