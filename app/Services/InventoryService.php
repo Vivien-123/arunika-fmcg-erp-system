@@ -183,11 +183,19 @@ class InventoryService
                     throw new \RuntimeException("SR-04: Stok {$line->variant_sku} tidak ditemukan.");
                 }
 
-                // SR-04 / SR-22: check available at source location
-                $onHand    = $delivery->source_location === 'WH-JKT'
+                // SR-04 / SR-22: check available at source location.
+                // The SO line's own reservation must NOT count against this delivery —
+                // that stock was reserved FOR this delivery, so it is available.
+                $onHand = $delivery->source_location === 'WH-JKT'
                     ? $stock->wh_jkt_on_hand
                     : $stock->hub_bdg_on_hand;
-                $available = $onHand - $stock->reserved;
+
+                $lineReservedQty = 0;
+                if ($line->sales_order_line_id) {
+                    $soLine = SalesOrderLine::find($line->sales_order_line_id);
+                    $lineReservedQty = $soLine ? (int) $soLine->reserved_qty : 0;
+                }
+                $available = $onHand - $stock->reserved + $lineReservedQty;
                 if ($doneQty > $available) {
                     throw new \RuntimeException(
                         "SR-04: Stok tidak cukup untuk {$line->variant_sku}. "
@@ -195,20 +203,15 @@ class InventoryService
                     );
                 }
 
-                // SR-09/SR-07: FEFO lot picking for lot-tracked SKUs
+                // SR-09/SR-07: FEFO lot picking for lot-tracked SKUs.
+                // SR-09: expired lots are skipped (dilarang dikirim), not blocking
+                // the entire delivery — the system picks from the next valid lot.
                 $lotId       = null;
-                $lots        = ProductLot::fefoLotsFor($line->variant_sku, $delivery->source_location);
+                $lots        = ProductLot::fefoLotsFor($line->variant_sku, $delivery->source_location)
+                    ->filter(fn($lot) => !$lot->expiry_date->isPast());
                 $lotsToDeduct = [];
 
                 if ($lots->count() > 0) {
-                    // SR-09: blocked if the earliest-expiry lot is expired
-                    $firstLot = $lots->first();
-                    if ($firstLot->expiry_date->isPast()) {
-                        throw new \RuntimeException(
-                            "SR-09: Lot {$firstLot->lot_id} sudah kedaluwarsa ({$firstLot->expiry_date->toDateString()}) — dilarang dikirim."
-                        );
-                    }
-
                     // SR-07: multi-lot FEFO allocation — drain lots in expiry order
                     $remaining = $doneQty;
                     foreach ($lots as $lot) {
@@ -216,6 +219,13 @@ class InventoryService
                         $take = min($lot->qty, $remaining);
                         $lotsToDeduct[] = ['lot' => $lot, 'qty' => $take];
                         $remaining -= $take;
+                    }
+                    if ($remaining > 0) {
+                        throw new \RuntimeException(
+                            "SR-04/SR-09: Stok lot tidak cukup untuk {$line->variant_sku} "
+                            . "(lot tersedia tidak cukup / semua lot sudah kedaluwarsa). "
+                            . "Diminta: {$doneQty}, tersedia: " . ($doneQty - $remaining) . "."
+                        );
                     }
                     // Record the first lot id picked (for StockMove / DeliveryLine traceability)
                     $lotId = $lots->first()->lot_id;
@@ -226,8 +236,9 @@ class InventoryService
                     }
                 }
 
-                // Deduct stock at source location and company total
-                $reserveRelease = min($stock->reserved, $doneQty);
+                // Deduct stock at source location and company total.
+                // Release only THIS SO line's reservation (not other SOs' reservations).
+                $reserveRelease = min($lineReservedQty, $doneQty);
                 if ($delivery->source_location === 'WH-JKT') {
                     $stock->decrement('wh_jkt_on_hand', $doneQty);
                 } else {
@@ -236,6 +247,11 @@ class InventoryService
                 $stock->decrement('company_total', $doneQty);
                 if ($reserveRelease > 0) {
                     $stock->decrement('reserved', $reserveRelease);
+                    // Update SO line's reserved_qty to reflect the release
+                    if ($line->sales_order_line_id) {
+                        SalesOrderLine::where('id', $line->sales_order_line_id)
+                            ->decrement('reserved_qty', $reserveRelease);
+                    }
                 }
                 $freshStock = $stock->fresh();
                 $stock->update(['standard_value' => $freshStock->company_total * $freshStock->standard_cost]);

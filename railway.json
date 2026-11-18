@@ -4,8 +4,8 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "php artisan serve --host=0.0.0.0 --port=$PORT",
-    "healthcheckPath": "/",
+    "startCommand": "php artisan config:cache && php artisan db:master-seed && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}",
+    "healthcheckPath": "/login",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3
   }

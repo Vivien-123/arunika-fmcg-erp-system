@@ -1,11 +1,15 @@
 [phases.install]
 cmds = [
-  "composer install --no-dev --optimize-autoloader --no-interaction",
+  "composer install --no-dev --optimize-autoloader --no-interaction"
+]
+
+[phases.build]
+cmds = [
   "php artisan key:generate --force",
-  "php artisan config:cache",
   "php artisan route:cache",
-  "php artisan view:cache"
+  "php artisan view:cache",
+  "chmod -R 775 storage bootstrap/cache database"
 ]
 
 [start]
-cmd = "php artisan db:master-seed --force && php artisan serve --host=0.0.0.0 --port=$PORT"
+cmd = "php artisan config:cache && php artisan db:master-seed && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}"

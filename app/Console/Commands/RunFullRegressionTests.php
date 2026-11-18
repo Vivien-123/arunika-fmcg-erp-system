@@ -300,21 +300,24 @@ class RunFullRegressionTests extends Command
 
     private function testT12(): void
     {
-        // Try delivery of more than available
+        // SR-04: delivery exceeding available stock at source location must be rejected.
+        // P02 (FOD-MIE-B12-ORI): WH-JKT=40, company_total=50.
+        // SO for 45 P02 → reserves 45 (company-level). WH-JKT only has 40.
+        // Delivery demand=45, done_qty=45 > available(40) → SR-04 rejection.
         $p02 = Product::find('P02');
         $so2 = $this->sales->createQuotation([
             'customer_id' => 'C03', 'created_by' => 'sales_user',
             'lines' => [['product_id'=>'P02','variant_sku'=>$p02->variant_sku,'product_name'=>$p02->name,
-                'unit'=>$p02->unit,'quantity'=>12,'unit_price'=>54000,'discount_percent'=>0,'source_location'=>'WH-JKT']],
+                'unit'=>$p02->unit,'quantity'=>45,'unit_price'=>54000,'discount_percent'=>0,'source_location'=>'WH-JKT']],
         ]);
         $this->sales->confirmSalesOrder($so2->id, 'sales_user');
         $d = $this->inventory->createDelivery($so2->id, 'warehouse_mgr');
 
-        // Manually override done_qty to exceed available
+        // done_qty = 45 exceeds available at WH-JKT (40) → SR-04
         $line = $d->lines->first();
         $threw = false;
         try {
-            $this->inventory->processDelivery($d->id, 'E01', 'warehouse_mgr', [$line->id => 45]); // way over
+            $this->inventory->processDelivery($d->id, 'E01', 'warehouse_mgr', [$line->id => 45]);
         } catch (\RuntimeException $e) {
             $threw = str_contains($e->getMessage(), 'SR-04') || str_contains($e->getMessage(), 'tidak cukup');
         }
@@ -641,6 +644,9 @@ class RunFullRegressionTests extends Command
         $arBefore = (int)(JournalEntry::where('debit_account','1100')->sum('amount')
                        - JournalEntry::where('credit_account','1100')->sum('amount'));
 
+        // SR-13: capture P01 stock before return
+        $stockBefore = (int) OpeningStock::where('variant_sku','CLN-DTR-800-LMN')->value('wh_jkt_on_hand');
+
         $cn = $this->accounting->createCreditNote($invoice, [
             ['variant_sku'=>'CLN-DTR-800-LMN','qty'=>2,'is_saleable'=>true,'unit_cost'=>17_000],
         ], 'finance_user');
@@ -652,6 +658,10 @@ class RunFullRegressionTests extends Command
             ->orderByDesc('id')->first();
         $this->assertNotNull("COGS reversal Dr1300/Cr5100 exists",  $reversal);
         $this->assert("COGS reversal = 34,000",                      (int)$reversal->amount, 34_000);
+
+        // SR-13: saleable return adds On Hand (+2)
+        $stockAfter = (int) OpeningStock::where('variant_sku','CLN-DTR-800-LMN')->value('wh_jkt_on_hand');
+        $this->assert("SR-13: WH-JKT P01 On Hand naik 2", $stockAfter, $stockBefore + 2);
 
         $posted = $this->accounting->postInvoice($cn, 'finance_user');
         $this->assert("CN posted", $posted->status, 'posted');

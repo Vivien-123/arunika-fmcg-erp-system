@@ -6,6 +6,8 @@ use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\JournalEntry;
 use App\Models\AuditLog;
+use App\Models\OpeningStock;
+use App\Models\StockMove;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -223,9 +225,34 @@ class AccountingService
             $creditNote = Invoice::create(['document_number' => $docNumber, 'invoice_type' => 'credit_note', 'status' => 'draft', 'partner_id' => $originalInvoice->partner_id, 'partner_name' => $originalInvoice->partner_name, 'partner_type' => 'customer', 'source_document_id' => $originalInvoice->source_document_id, 'source_document_type' => 'sales_order', 'original_invoice_id' => $originalInvoice->id, 'untaxed_amount' => $netTotal, 'tax_amount' => $taxTotal, 'gross_amount' => $grossTotal, 'amount_paid' => 0, 'amount_outstanding' => $grossTotal, 'tax_code' => 'PPN-NONLUX', 'tax_rate' => 0.1100, 'created_by' => $createdBy, 'invoice_date' => now()->toDateString()]);
             foreach ($computedLines as $line) {
                 InvoiceItem::create(array_merge(['invoice_id' => $creditNote->id], $line));
-                if (($ret['is_saleable'] ?? false) && ($ret['unit_cost'] ?? 0) > 0) {
-                    $reversalAmt = (int)$ret['qty'] * (int)$ret['unit_cost'];
+                if (($line['is_saleable'] ?? false) && ($line['unit_cost'] ?? 0) > 0) {
+                    $reversalAmt = (int)$line['qty'] * (int)$line['unit_cost'];
                     $this->postRawEntry(null, 'stock', "COGS-REVERSAL-{$docNumber}", self::INVENTORY, self::COGS, $reversalAmt, "COGS Reversal retur layak jual - {$docNumber}", $createdBy);
+
+                    // SR-13: Return barang layak jual menambah On Hand + StockMove
+                    $stock = OpeningStock::where('variant_sku', $line['variant_sku'])->first();
+                    if ($stock) {
+                        $returnQty = (int) $line['qty'];
+                        $stock->increment('wh_jkt_on_hand', $returnQty);
+                        $stock->increment('company_total', $returnQty);
+                        $freshStock = $stock->fresh();
+                        $stock->update(['standard_value' => $freshStock->company_total * $freshStock->standard_cost]);
+
+                        StockMove::create([
+                            'reference'       => $docNumber,
+                            'move_type'       => 'return',
+                            'variant_sku'     => $line['variant_sku'],
+                            'from_location'   => null,
+                            'to_location'     => 'WH-JKT',
+                            'qty'             => $returnQty,
+                            'unit_cost'       => (int) $line['unit_cost'],
+                            'total_value'     => $reversalAmt,
+                            'lot_id'          => null,
+                            'actor_user'      => $createdBy,
+                            'actor_employee'  => null,
+                            'idempotency_key' => md5("sm_return|{$docNumber}|{$line['variant_sku']}|{$returnQty}"),
+                        ]);
+                    }
                 }
             }
             AuditLog::record('credit_note', $docNumber, 'created', $createdBy, "Credit Note {$docNumber} dibuat. SR-13 ceiling applied.");
