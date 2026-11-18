@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: arunika-fmcg-erp
+    runtime: docker
+    plan: free
+    healthCheckPath: /login
+    dockerContext: .
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        value: "base64:EaIAFLXlMhfauevCxwM6Zymr48LPmUXhA4RQeOZXiHU="
+      - key: DB_CONNECTION
+        value: sqlite
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: SESSION_DRIVER
+        value: file
+      - key: CACHE_DRIVER
+        value: file

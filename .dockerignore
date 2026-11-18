@@ -1,0 +1,17 @@
+.git
+.gitignore
+node_modules
+vendor
+.env
+storage/logs/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/framework/cache/data/*
+bootstrap/cache/packages.php
+bootstrap/cache/services.php
+*.md
+check_out.txt
+check_tables_out.txt
+temp_*
+*.sqlite-journal
+*.bak
