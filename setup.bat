@@ -7,16 +7,24 @@ echo.
 REM Step 1: Create .env from template if missing
 if not exist ".env" (
     if exist ".env.example" (
-        echo [1/5] Creating .env from .env.example...
+        echo [1/6] Creating .env from .env.example...
         copy .env.example .env >nul
     ) else (
-        echo [1/5] ERROR: .env.example not found. Cannot create .env
+        echo [1/6] ERROR: .env.example not found. Cannot create .env
         pause
         exit /b 1
     )
 ) else (
-    echo [1/5] .env already exists.
+    echo [1/6] .env already exists.
 )
+
+REM Step 1b: Ensure storage directories exist
+if not exist "storage\framework\sessions" mkdir "storage\framework\sessions"
+if not exist "storage\framework\views" mkdir "storage\framework\views"
+if not exist "storage\framework\cache\data" mkdir "storage\framework\cache\data"
+if not exist "storage\logs" mkdir "storage\logs"
+if not exist "storage\app\public" mkdir "storage\app\public"
+echo      Storage directories ready.
 
 REM Step 2: Check PHP
 where php >nul 2>&1
@@ -27,12 +35,12 @@ if %ERRORLEVEL% neq 0 (
     pause
     exit /b 1
 )
-echo [2/5] PHP found.
+echo [2/6] PHP found.
 php -v
 
 REM Step 3: Install Composer dependencies if vendor/ is missing
 if not exist "vendor\autoload.php" (
-    echo [3/5] Installing Composer dependencies...
+    echo [3/6] Installing Composer dependencies...
     where composer >nul 2>&1
     if %ERRORLEVEL% neq 0 (
         echo [ERROR] Composer is not installed.
@@ -42,15 +50,15 @@ if not exist "vendor\autoload.php" (
     )
     composer install --no-interaction --no-dev --optimize-autoloader
 ) else (
-    echo [3/5] Composer dependencies already installed.
+    echo [3/6] Composer dependencies already installed.
 )
 
 REM Step 4: Generate APP_KEY
-echo [4/5] Generating APP_KEY...
+echo [4/6] Generating APP_KEY...
 php artisan key:generate --force
 
 REM Step 5: Seed database to baseline
-echo [5/5] Seeding database to baseline...
+echo [5/6] Seeding database to baseline...
 php artisan db:master-seed
 
 echo.
