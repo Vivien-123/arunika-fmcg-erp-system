@@ -6,14 +6,14 @@
     $menus = $user->allowedMenus();
 
     $allMenus = [
-        'Sales'      => ['url'=>route('sales.orders.index'),        'desc'=>'Quotation → Order to Cash',    'icon'=>'🛍️', 'class'=>'module-sales'],
-        'CRM'        => ['url'=>route('crm.leads.index'),           'desc'=>'Lead & Opportunity pipeline',  'icon'=>'🤝', 'class'=>'module-crm'],
-        'Purchase'   => ['url'=>route('purchase.orders.index'),     'desc'=>'RFQ → Procure to Pay',         'icon'=>'🛒', 'class'=>'module-purchase'],
+        'Sales'      => ['url'=>route('sales.orders.index'),        'desc'=>'Penawaran dan pesanan penjualan', 'icon'=>'🛍️', 'class'=>'module-sales'],
+        'CRM'        => ['url'=>route('crm.leads.index'),           'desc'=>'Kelola prospek dan peluang penjualan', 'icon'=>'🤝', 'class'=>'module-crm'],
+        'Purchase'   => ['url'=>route('purchase.orders.index'),     'desc'=>'Permintaan pembelian dan pesanan pemasok', 'icon'=>'🛒', 'class'=>'module-purchase'],
         'Inventory'  => ['url'=>route('inventory.stock'),           'desc'=>'Pantau stok dan pergerakan barang', 'icon'=>'📦', 'class'=>'module-inventory'],
-        'Accounting' => ['url'=>route('accounting.invoices.index'), 'desc'=>'Kelola transaksi keuangan',         'icon'=>'💰', 'class'=>'module-accounting'],
-        'Employees'  => ['url'=>route('employees.index'),           'desc'=>'Pegawai & Departemen',         'icon'=>'👥', 'class'=>'module-employees'],
-        'Reporting'  => ['url'=>route('reporting.dashboard'),       'desc'=>'KPI & Stock Operasional',      'icon'=>'📊', 'class'=>'module-reporting'],
-        'Admin'      => ['url'=>route('admin.business-rules'),      'desc'=>'Pengaturan aplikasi',          'icon'=>'⚙️', 'class'=>'module-admin'],
+        'Accounting' => ['url'=>route('accounting.invoices.index'), 'desc'=>'Faktur dan transaksi keuangan', 'icon'=>'💰', 'class'=>'module-accounting'],
+        'Employees'  => ['url'=>route('employees.index'),           'desc'=>'Data pegawai dan departemen', 'icon'=>'👥', 'class'=>'module-employees'],
+        'Reporting'  => ['url'=>route('reporting.dashboard'),       'desc'=>'Laporan operasional dan kinerja', 'icon'=>'📊', 'class'=>'module-reporting'],
+        'Admin'      => ['url'=>route('admin.business-rules'),      'desc'=>'Aturan dan pengaturan aplikasi', 'icon'=>'⚙️', 'class'=>'module-admin'],
     ];
     $allowedMenus = array_filter($allMenus, fn($key) => in_array($key, $menus), ARRAY_FILTER_USE_KEY);
 @endphp
@@ -23,47 +23,22 @@
     <span class="text-gray-600 font-medium">Dashboard</span>
 @endsection
 
-@section('control_panel_extra')
-@if(in_array('Reporting', $menus))
-<a href="{{ route('reporting.dashboard') }}" class="dashboard-report-button">
-    <span aria-hidden="true">📈</span>
-    Dashboard Operasional
-</a>
-@endif
-@endsection
-
 @section('content')
 <div class="dashboard-shell">
-    <section class="dashboard-hero">
-        <div class="dashboard-hero-orbit dashboard-hero-orbit-one"></div>
-        <div class="dashboard-hero-orbit dashboard-hero-orbit-two"></div>
-        <div class="dashboard-hero-content">
-            <div class="dashboard-hero-topline">
-                <span class="dashboard-hero-brand"><span class="dashboard-hero-brand-mark">A</span> ARUNIKA ERP</span>
-                <span class="dashboard-hero-date">{{ now()->format('l, d M Y') }}</span>
-            </div>
-            <h1>Selamat datang,<br><span>{{ Str::words($user->name, 2, '') }}</span></h1>
-            <div class="dashboard-hero-profile">
-                <span class="dashboard-hero-avatar">{{ strtoupper(substr($user->name, 0, 1)) }}</span>
-                <span class="dashboard-hero-role">{{ $user->role }}</span>
-            </div>
+    <section class="dashboard-heading">
+        <div>
+            <span class="dashboard-eyebrow">ARUNIKA ERP</span>
+            <h1>Selamat datang, {{ Str::words($user->name, 2, '') }}</h1>
+            <p>Pilih aplikasi untuk mulai mengelola pekerjaan Anda.</p>
         </div>
-        <div class="dashboard-hero-art" aria-hidden="true">
-            <div class="dashboard-art-ring"></div>
-            <div class="dashboard-art-core">A</div>
-            <span class="dashboard-art-spark dashboard-art-spark-one">✦</span>
-            <span class="dashboard-art-spark dashboard-art-spark-two">✦</span>
-            <span class="dashboard-art-spark dashboard-art-spark-three">✧</span>
+        <div class="dashboard-date">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                <rect x="3.5" y="5" width="17" height="15.5" rx="2" stroke="currentColor" stroke-width="1.6"/>
+                <path d="M7.5 3.5v3M16.5 3.5v3M3.5 9.5h17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+            <span>{{ now()->format('d M Y') }}</span>
         </div>
     </section>
-
-    <div class="dashboard-section-heading">
-        <div>
-            <span class="dashboard-section-kicker">ARUNIKA WORKSPACE</span>
-            <h2>Aplikasi Anda</h2>
-        </div>
-        <span class="dashboard-section-decoration" aria-hidden="true">✦</span>
-    </div>
 
     @if(count($allowedMenus) === 0)
     <div class="panel px-6 py-12 text-center">
@@ -74,14 +49,28 @@
         <p class="text-xs text-gray-400 mt-1">Hubungi administrator untuk mendapatkan akses.</p>
     </div>
     @else
-    <div class="dashboard-module-grid">
+    <section class="dashboard-launcher" aria-labelledby="dashboardAppsTitle">
+        <div class="dashboard-launcher-toolbar">
+            <div>
+                <h2 id="dashboardAppsTitle">Aplikasi</h2>
+                <p id="dashboardAppCount" aria-live="polite">{{ count($allowedMenus) }} aplikasi tersedia</p>
+            </div>
+            <label class="dashboard-app-search">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                    <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/>
+                    <path d="m16 16 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+                <input id="dashboardAppSearch" type="search" placeholder="Cari aplikasi..." aria-label="Cari aplikasi" autocomplete="off">
+            </label>
+        </div>
+        <div class="dashboard-module-grid">
         @foreach($allowedMenus as $name => $info)
         @php $moduleClass = $info['class'] ?? 'module-default'; @endphp
         <a href="{{ $info['url'] }}"
-           class="dashboard-module-card {{ $moduleClass }}">
-            <span class="dashboard-module-glow" aria-hidden="true"></span>
+           class="dashboard-module-card {{ $moduleClass }}"
+           data-app-card
+           data-app-search="{{ strtolower($name.' '.$info['desc']) }}">
             <span class="dashboard-module-icon" aria-hidden="true">{{ $info['icon'] }}</span>
-            <span class="dashboard-module-arrow" aria-hidden="true">↗</span>
             <span class="dashboard-module-copy">
                 <span class="dashboard-module-title">{{ $name }}</span>
                 <span class="dashboard-module-description">{{ $info['desc'] }}</span>
@@ -92,7 +81,33 @@
             </span>
         </a>
         @endforeach
-    </div>
+        </div>
+        <p id="dashboardNoApps" class="dashboard-no-apps" hidden>Tidak ada aplikasi yang cocok dengan pencarian.</p>
+    </section>
+    <script>
+        (() => {
+            const search = document.getElementById('dashboardAppSearch');
+            const cards = Array.from(document.querySelectorAll('[data-app-card]'));
+            const count = document.getElementById('dashboardAppCount');
+            const empty = document.getElementById('dashboardNoApps');
+
+            if (!search || !count || !empty) return;
+
+            search.addEventListener('input', () => {
+                const query = search.value.trim().toLowerCase();
+                let visible = 0;
+
+                cards.forEach((card) => {
+                    const matches = card.dataset.appSearch.includes(query);
+                    card.hidden = !matches;
+                    if (matches) visible += 1;
+                });
+
+                count.textContent = `${visible} aplikasi tersedia`;
+                empty.hidden = visible !== 0;
+            });
+        })();
+    </script>
     @endif
 
 </div>

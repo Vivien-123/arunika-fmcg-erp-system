@@ -114,7 +114,7 @@
         <span class="text-purple-200 text-xs hidden lg:inline">ERP</span>
         @if(isset($currentApp))
         <span class="text-purple-200 text-xs hidden lg:inline">/</span>
-        <span class="text-white text-xs font-medium hidden lg:inline">{{ $currentApp }}</span>
+        <span class="hidden lg:inline rounded bg-white/10 px-2 py-1 text-xs font-semibold text-white">{{ $currentApp }}</span>
         @endif
 
         {{-- Right controls --}}
@@ -283,6 +283,16 @@
 
     @if($showSidebar && isset($moduleSidebarItems[$moduleFromPath]))
     @php $sidebar = $moduleSidebarItems[$moduleFromPath]; @endphp
+    @php
+        $activeSidebarMatch = null;
+        foreach ($sidebar['items'] as $candidate) {
+            $candidateMatches = $currentPath === $candidate['match']
+                || str_starts_with($currentPath, $candidate['match'].'/');
+            if ($candidateMatches && ($activeSidebarMatch === null || strlen($candidate['match']) > strlen($activeSidebarMatch))) {
+                $activeSidebarMatch = $candidate['match'];
+            }
+        }
+    @endphp
     <aside id="sidebar"
            class="w-60 bg-white border-r border-gray-200 flex-shrink-0 hidden md:flex flex-col sticky top-12"
            style="height:calc(100vh - 48px); overflow-y:auto;">
@@ -291,7 +301,7 @@
         <div class="px-4 py-3.5 border-b border-gray-100 shrink-0">
             <div class="flex items-center justify-between">
                 <p class="text-xs font-bold text-gray-700">{{ $sidebar['title'] }}</p>
-                <a href="{{ route('home') }}" class="text-gray-300 hover:text-gray-500 transition" title="Kembali ke Dashboard">
+                <a href="{{ route('home') }}" class="text-gray-300 hover:text-gray-500 transition" title="Semua aplikasi" aria-label="Kembali ke semua aplikasi">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                     </svg>
@@ -302,8 +312,9 @@
         {{-- Nav items --}}
         <nav class="py-2 flex-1">
             @foreach($sidebar['items'] as $item)
-            @php $isActive = str_starts_with($currentPath, $item['match']); @endphp
+            @php $isActive = $activeSidebarMatch === $item['match']; @endphp
             <a href="{{ $item['url'] }}"
+               @if($isActive) aria-current="page" @endif
                class="flex items-center gap-2.5 px-4 py-2 text-[13px] transition-colors
                       {{ $isActive
                           ? 'text-[#714B67] font-semibold bg-[#F7F3F6] border-l-[3px] border-[#714B67]'
@@ -314,15 +325,6 @@
             @endforeach
         </nav>
 
-        {{-- Back button --}}
-        <div class="border-t border-gray-100 px-4 py-3 shrink-0">
-            <a href="{{ route('home') }}" class="flex items-center gap-1.5 text-xs text-gray-400 hover:text-[#714B67] transition">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                </svg>
-                Semua Modul
-            </a>
-        </div>
     </aside>
     @endif
     @endauth

@@ -5,136 +5,94 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login — PT Arunika ERP</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/login-modern.css') }}">
-    <style>
-        body { font-family: 'Inter', system-ui, sans-serif; }
-        .mono { font-family: 'IBM Plex Mono', monospace; }
-        .input-field {
-            width: 100%;
-            border: 1px solid #E2E8F0;
-            border-radius: 6px;
-            padding: 10px 14px;
-            font-size: 13px;
-            color: #0F172A;
-            background: white;
-            outline: none;
-            transition: border-color 150ms, box-shadow 150ms;
-        }
-        .input-field:focus {
-            border-color: #714B67;
-            box-shadow: 0 0 0 3px rgba(113,75,103,0.1);
-        }
-        .input-field::placeholder { color: #94A3B8; }
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(16px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-up { animation: fadeUp 0.4s ease-out both; }
-        .delay-1 { animation-delay: 0.05s; }
-        .delay-2 { animation-delay: 0.1s; }
-        .delay-3 { animation-delay: 0.15s; }
-    </style>
 </head>
-<body class="login-page min-h-screen flex">
-
-    {{-- ── LEFT PANEL: Branding (visual only) ── --}}
-    <div class="login-brand-panel hidden lg:flex flex-col justify-center items-center w-[420px] bg-[#714B67] p-10 relative overflow-hidden shrink-0">
-
-        {{-- Background pattern --}}
-        <div class="absolute inset-0 opacity-[0.06]" style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 32px 32px;"></div>
-        <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-white/5 rounded-full"></div>
-        <div class="absolute -top-20 -left-20 w-72 h-72 bg-white/5 rounded-full"></div>
-
-        {{-- Logo only --}}
-        <div class="relative z-10">
-            <div class="w-20 h-20 bg-white/15 rounded-2xl flex items-center justify-center font-black text-white text-4xl">A</div>
-            <p class="mt-5 text-center text-lg font-bold tracking-wide text-white">ARUNIKA ERP</p>
+<body class="login-page">
+    <main class="login-shell">
+        <div class="login-brand">
+            <span class="login-brand-mark" aria-hidden="true">A</span>
+            <span class="login-brand-copy">
+                <strong>ARUNIKA ERP</strong>
+                <small>PT Arunika Distribusi Cepat</small>
+            </span>
         </div>
-    </div>
 
-    {{-- ── RIGHT PANEL: Login form ── --}}
-    <div class="login-content flex-1 flex items-center justify-center p-6 lg:p-12">
-        <div class="login-card w-full max-w-sm">
-
-            {{-- Mobile logo --}}
-            <div class="flex items-center gap-2 mb-8 lg:hidden">
-                <div class="w-8 h-8 bg-[#714B67] rounded-lg flex items-center justify-center font-black text-white">A</div>
-                <span class="font-bold text-gray-800">ARUNIKA ERP</span>
-            </div>
-
-            {{-- Form header --}}
-            <div class="mb-7 animate-fade-up">
-                <h2 class="text-2xl font-bold text-gray-900">Masuk ke Arunika ERP</h2>
-            </div>
+        <section class="login-card" aria-labelledby="loginTitle">
+            <header class="login-intro">
+                <span class="login-eyebrow">RUANG KERJA DIGITAL</span>
+                <h1 id="loginTitle">Selamat datang kembali</h1>
+                <p>Masuk untuk melanjutkan pekerjaan Anda.</p>
+            </header>
 
             @if($errors->any())
-            <div class="mb-5 bg-red-50 border border-red-200 border-l-4 border-l-red-500 rounded-lg px-4 py-3 animate-fade-up">
-                <p class="text-red-700 text-sm font-medium">{{ $errors->first() }}</p>
+            <div class="login-error" role="alert">
+                <svg aria-hidden="true" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-11a1 1 0 112 0v4a1 1 0 11-2 0V7zm1 8a1.1 1.1 0 100-2.2A1.1 1.1 0 0010 15z" clip-rule="evenodd"/>
+                </svg>
+                <p>{{ $errors->first() }}</p>
             </div>
             @endif
 
-            <form method="POST" action="{{ route('login.post') }}" class="space-y-4">
+            <form method="POST" action="{{ route('login.post') }}" class="login-form">
                 @csrf
 
-                <div class="animate-fade-up delay-1">
-                    <label for="usernameInput" class="block text-xs font-semibold text-gray-600 mb-1.5">Username atau Email</label>
+                <div class="login-field">
+                    <label for="usernameInput">Username atau email</label>
                     <input type="text" name="username" id="usernameInput" value="{{ old('username') }}" required autofocus autocomplete="username"
-                           placeholder="Masukkan username atau email"
-                           class="input-field">
+                           placeholder="Masukkan username atau email">
                 </div>
 
-                <div class="animate-fade-up delay-2">
-                    <label for="passwordInput" class="block text-xs font-semibold text-gray-600 mb-1.5">Password</label>
-                    <div class="relative">
+                <div class="login-field">
+                    <label for="passwordInput">Password</label>
+                    <div class="password-field">
                         <input type="password" name="password" id="passwordInput" required autocomplete="current-password"
-                               placeholder="••••••••"
-                               class="input-field pr-10">
-                        <button type="button" onclick="togglePassword()"
-                                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition">
-                            <svg id="eyeOpen" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                               placeholder="Masukkan password">
+                        <button type="button" class="password-toggle" id="passwordToggle" aria-label="Tampilkan password" aria-pressed="false">
+                            <svg id="eyeOpen" aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                                <path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                                <circle cx="12" cy="12" r="2.7" stroke="currentColor" stroke-width="1.7"/>
                             </svg>
-                            <svg id="eyeClosed" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                            <svg id="eyeClosed" class="hidden" aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                                <path d="m3 3 18 18M10.6 6.2A10.7 10.7 0 0 1 12 6c6.1 0 9.5 6 9.5 6a15 15 0 0 1-3 3.6M6.2 6.3C3.8 8 2.5 12 2.5 12s3.4 6 9.5 6a10.7 10.7 0 0 0 3-.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
                             </svg>
                         </button>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2 animate-fade-up delay-2">
-                    <input type="checkbox" name="remember" id="remember" class="w-3.5 h-3.5 accent-[#714B67] rounded">
-                    <label for="remember" class="text-xs text-gray-500 cursor-pointer">Ingat saya</label>
-                </div>
+                <label class="remember-option" for="remember">
+                    <input type="checkbox" name="remember" id="remember">
+                    <span>Ingat saya</span>
+                </label>
 
-                <div class="pt-1 animate-fade-up delay-3">
-                    <button type="submit"
-                            class="w-full bg-[#714B67] hover:bg-[#5E3D56] text-white font-semibold rounded-lg py-2.5 text-sm transition-all duration-150 active:scale-[.98]">
-                        Masuk
-                    </button>
-                </div>
+                <button type="submit" class="login-submit">
+                    <span>Masuk</span>
+                    <svg aria-hidden="true" viewBox="0 0 20 20" fill="none">
+                        <path d="M4 10h11m-4-4 4 4-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
             </form>
+        </section>
 
-        </div>
-    </div>
+        <footer class="login-footer">Akses aman untuk operasional bisnis Anda</footer>
+    </main>
 
-<script>
-function togglePassword() {
-    const input = document.getElementById('passwordInput');
-    const open  = document.getElementById('eyeOpen');
-    const closed= document.getElementById('eyeClosed');
-    if (input.type === 'password') {
-        input.type = 'text';
-        open.classList.add('hidden');
-        closed.classList.remove('hidden');
-    } else {
-        input.type = 'password';
-        open.classList.remove('hidden');
-        closed.classList.add('hidden');
-    }
-}
-</script>
+    <script>
+        const passwordInput = document.getElementById('passwordInput');
+        const passwordToggle = document.getElementById('passwordToggle');
+        const eyeOpen = document.getElementById('eyeOpen');
+        const eyeClosed = document.getElementById('eyeClosed');
+
+        passwordToggle.addEventListener('click', () => {
+            const showPassword = passwordInput.type === 'password';
+            passwordInput.type = showPassword ? 'text' : 'password';
+            passwordToggle.setAttribute('aria-label', showPassword ? 'Sembunyikan password' : 'Tampilkan password');
+            passwordToggle.setAttribute('aria-pressed', String(showPassword));
+            eyeOpen.classList.toggle('hidden', showPassword);
+            eyeClosed.classList.toggle('hidden', !showPassword);
+        });
+    </script>
 </body>
 </html>
