@@ -12,7 +12,7 @@ services:
       - key: APP_DEBUG
         value: "false"
       - key: APP_KEY
-        value: "base64:EaIAFLXlMhfauevCxwM6Zymr48LPmUXhA4RQeOZXiHU="
+        generateValue: true
       - key: DB_CONNECTION
         value: sqlite
       - key: LOG_CHANNEL
