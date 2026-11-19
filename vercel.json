@@ -1,11 +1,40 @@
 {
   "version": 2,
-  "framework": "laravel",
+  "framework": null,
+  "installCommand": "",
+  "buildCommand": "",
   "functions": {
-    "api/index.php": { "runtime": "vercel-php@0.7.3" }
+    "api/index.php": {
+      "runtime": "vercel-php@0.7.3"
+    }
   },
   "routes": [
-    { "src": "/build/(.*)", "dest": "/public/build/$1" },
-    { "src": "/(.*)", "dest": "/public/index.php" }
-  ]
+    {
+      "src": "/build/(.*)",
+      "dest": "/public/build/$1"
+    },
+    {
+      "src": "/css/(.*)",
+      "dest": "/public/css/$1"
+    },
+    {
+      "src": "/(app\\.js|style\\.css|favicon\\.ico)",
+      "dest": "/public/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/api/index.php"
+    }
+  ],
+  "env": {
+    "APP_ENV": "production",
+    "APP_DEBUG": "false",
+    "APP_STORAGE": "/tmp",
+    "VIEW_COMPILED_PATH": "/tmp",
+    "DB_CONNECTION": "sqlite",
+    "DB_DATABASE": "/tmp/database.sqlite",
+    "CACHE_DRIVER": "array",
+    "LOG_CHANNEL": "stderr",
+    "SESSION_DRIVER": "cookie"
+  }
 }
