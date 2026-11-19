@@ -33,3 +33,5 @@ t.txt
 
 # Retired seeders
 database/seeders/FmcgSeeder.php.bak
+.vercel
+.env*

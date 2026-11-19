@@ -1,5 +1,5 @@
 {
-  "name": "arunika-fmcg-erp",
+  "name": "arunika-fmcg-erp-system",
   "version": "1.0.0",
   "description": "PT Arunika Distribusi Cepat - FMCG ERP System (Odoo 17 Style)",
   "main": "server.js",
